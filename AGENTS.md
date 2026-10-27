@@ -1,38 +1,54 @@
 # AGENTS.md — Vi shop
 
-Vi shop is a clothes catalog built on [Seed](https://github.com/spy4x/seed): a public website in
-Vietnamese and English, and the admin panel where the seller edits items and contact links.
-Shoppers order in Telegram or Zalo; the website takes no payments and has no customer accounts.
+Vi shop is a clothes catalog built on [Seed](https://github.com/spy4x/seed). Shoppers browse the
+public website and order by opening a chat with the shop on Telegram or Zalo; there is no cart
+payment and no customer account. The shop's staff edit items and contact links in the admin panel.
 
-[Seed's `AGENTS.md`](https://github.com/spy4x/seed/blob/main/AGENTS.md) applies here, except its
-sections "The live demo is not production" and "Financy". This file adds what is specific to the
-shop.
+Seed's `AGENTS.md` applies here (read it at
+`https://github.com/spy4x/seed/blob/main/AGENTS.md`), except its sections "The live demo is not
+production" and "Financy", which hold for the template only. This file adds what is specific to
+the shop.
 
-## What the shop uses of Seed
+## What the shop is
 
-- **On:** the public website (`apps/mpa`, Compose profile `mpa`), the admin panel (`apps/admin`,
-  profile `admin`), the API and the worker behind them, and the file store (profile `files`).
-- **Off, through the env file, never by deleting code:** billing (`BILLING_PROVIDER=off`), guest
-  accounts (`GUEST_MODE=false`) and the public demo (`DEMO_MODE=false`). Seed has no switch for
-  the SPA: in production `MPA_REDIRECT_RULE` sends every request to the SPA's host (`DOMAIN`) to
-  the website instead, as `infra/envs/.env.example` says.
-- **Gone from the website:** Seed's own pages (features, pricing, compare, admin, the API
-  reference, the blog and the newsletter pages). `.seed/skip` lists every Seed path the shop
-  deleted or replaced.
+- [docs/shop/spec.md](docs/shop/spec.md): the product, its scope, the data, SEO and AEO, and the
+  order the work lands in.
+- [docs/shop/design.md](docs/shop/design.md): the design direction, screens and wireframes.
+- [docs/products.md](docs/products.md): how this repository takes Seed's later changes
+  (`.seed/commit`, `.seed/skip`).
 
-## Production
+## Seed first
 
-- Website: `https://vi-shop.antonshubin.com`. Admin panel: `https://admin.vi-shop.antonshubin.com`.
-- The server is the one Seed's own demo runs on, shared with other projects, under `PROJECT=vi-shop`.
-  `deno task deploy` deploys it, as [docs/deploy.md](docs/deploy.md) says.
-- The production env file is `infra/envs/.env.prod`, committed encrypted as `.env.prod.age`
-  (`deno task env:decrypt`).
+Vi shop is Seed's public case for a non-SaaS product. Anything another product built on Seed
+could use (the catalog module, image processing, a website in two languages, contact links) is
+built in Seed or in the shared libraries first, merged and released there, and arrives here with
+a sync, as "Give back to Seed" in `docs/products.md` says. This repository keeps only what names
+the shop: its brand, copy, categories, and the order-message wording.
 
-## Seed syncs
+## Apps that run
 
-The shop takes Seed's later changes as a patch: [docs/products.md](docs/products.md). The Seed
-commit it last took is in `.seed/commit`.
+The website (`apps/mpa`), the admin panel (`apps/admin`), the API and the worker. The SPA, billing,
+guest accounts and the public demo stay in the code, so syncs from Seed apply cleanly, but are off
+in the env file: `BILLING_PROVIDER=off`, `GUEST_MODE=false`, `DEMO_MODE=false`. Seed has no switch
+for the SPA, so its container still runs, and in production `MPA_REDIRECT_RULE` sends every request
+to its host (`DOMAIN`, `/api` included) to the website (`infra/envs/.env.example` says why the rule
+is written that long).
 
-## Where the product is described
+## Languages
 
-The product spec is `docs/shop/spec.md`.
+Vietnamese is the default language, English the second. Every page, label, item text and
+structured-data string exists in both. Prices are in Vietnamese dong (VND), stored as an integer
+number of dong.
+
+## Product photos
+
+The owner's photos never go into this repository: it is public. They are uploaded through the
+admin panel. Sample items for development use generated placeholder images.
+
+## Where it runs
+
+`vi-shop.antonshubin.com` (website) and `admin.vi-shop.antonshubin.com` (admin), on Seed's server,
+deployed the way Seed deploys itself (`docs/deploy.md`). Other projects run on that server and are
+not ours to touch.
+The production env file is committed encrypted as `infra/envs/.env.prod.age` (age64 per line);
+`deno task env:decrypt` writes `infra/envs/.env.prod`, which `deno task deploy` reads.

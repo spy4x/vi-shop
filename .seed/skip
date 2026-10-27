@@ -1,5 +1,3 @@
-.claude/skills/recapture-shots
-README.md
 apps/mpa/admin-video.ts
 apps/mpa/api-docs.test.ts
 apps/mpa/api-docs.ts
@@ -32,6 +30,7 @@ apps/mpa/static/og
 apps/mpa/static/shots
 apps/mpa/static/video
 apps/mpa/subscribers.tsx
+.claude/skills/recapture-shots
 docs/screenshots/profile-dark.png
 docs/screenshots/profile-light.png
 docs/screenshots/record.ts
@@ -45,3 +44,5 @@ e2e/mpa/features.mpa.ts
 e2e/mpa/mvp.mpa.ts
 e2e/mpa/site.mpa.ts
 e2e/mpa/subscribers.mpa.ts
+LICENSE
+README.md
