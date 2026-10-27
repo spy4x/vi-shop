@@ -26,15 +26,19 @@ how do I get it. The design answers those three, in that order, and drops the re
 
 ## Visual language
 
-- **Type:** Geist, as every product. Display headings at weight 800, tight tracking (about
-  `-0.04em`), set very large: the item name on a phone at about 40 px, the home page's headline at
-  about 72 px on a phone and 160 px on a desktop. Body text at the library's scale. Geist covers
-  Vietnamese diacritics; check the stacked tone marks (`ặ`, `ữ`, `ỗ`) at weight 800 before
-  building.
+- **Type:** Geist, as every product, in sentence case. The editorial headline this design wants
+  is larger and heavier than the design language allows today (a marketing hero is weight 700 at
+  `text-4xl`, `text-6xl` from `lg`). It depends on a "Storefront display" step added to the
+  language in preact-components
+  ([spy4x/preact-components#1030](https://github.com/spy4x/preact-components/issues/1030)):
+  weight 800, tight tracking, the home headline at about `text-6xl` on a phone and `text-9xl` on a
+  desktop, the item name at `text-4xl`. Until that lands, the site uses the language's hero sizes.
+  Geist covers Vietnamese; check the stacked tone marks (`ặ`, `ữ`, `ỗ`) at the heavy weight.
 - **Colour:** the library's neutrals, light and dark palettes. The shop's brand hue is the last
-  free one on the design language's wheel, chartreuse at about 105°: energetic and athletic, which
-  suits activewear. As the language says, it appears only on the primary action (the order
-  buttons), the selected size and colour, the brand mark and the favicon. Prices are set in the
+  free one on the design language's wheel, chartreuse at about 105°, at the lightness of 0.38 to 0.5
+  the language allows for a white label: athletic, which suits activewear. It appears only on the
+  primary action (the **Order on Telegram** button; Zalo is the secondary button beside it, so a view
+  has one accent-filled button), the selected size and colour, the brand mark and the favicon. Prices are set in the
   text colour, heavy and large, never as coloured stickers.
 - **Photos:** the seller's phone photos, never filtered or recoloured, so the colour a shopper sees
   is the colour that arrives. Each is cropped to 3:4 around the clothes, on the page colour, with
@@ -60,16 +64,16 @@ The newest looks, full size, with the brand's headline over the first one.
 ┌──────────────────────────┐            ┌──────────────────────────────────────────────────────────┐
 │ VI SHOP        EN  ☰    │            │ VI SHOP    Áo  Quần  Bộ  Đồ tập  Hỏi đáp      EN  Danh sách (2) │
 ├──────────────────────────┤            ├──────────────────────────────────────────────────────────┤
-│ Size của bạn: XS S [M] L │            │  MẶC ĐỂ                    Size của bạn: XS S [M] L XL   │
-│                          │            │  CHUYỂN ĐỘNG.              ┌────────┐                    │
+│ Size của bạn: XS S [M] L │            │  Mặc để                    Size của bạn: XS S [M] L XL   │
+│                          │            │  chuyển động.              ┌────────┐                    │
 │ ┌──────────────────────┐ │            │  ┌──────────┐  ┌────────┐ │        │  ┌──────────┐      │
 │ │                      │ │            │  │          │  │        │ │ photo  │  │          │      │
 │ │      photo 3:4       │ │            │  │  photo   │  │ photo  │ │        │  │  photo   │      │
 │ │                      │ │            │  │  (tall)  │  │        │ └────────┘  │          │      │
-│ │ MẶC ĐỂ               │ │            │  │          │  └────────┘ BỘ ĐỒ ĐỎ    │          │      │
-│ │ CHUYỂN ĐỘNG.         │ │            │  └──────────┘  ÁO KHOÁC  390.000 ₫  └──────────┘      │
-│ └──────────────────────┘ │            │  QUẦN SHORT    590.000 ₫ S M ~L~    BỘ ĐỒ XANH        │
-│ ÁO KHOÁC ZIP     590.000₫│            │  250.000 ₫     S M L               390.000 ₫          │
+│ │ Mặc để               │ │            │  │          │  └────────┘ Bộ đồ đỏ    │          │      │
+│ │ chuyển động.         │ │            │  └──────────┘  Áo khoác  390.000 ₫  └──────────┘      │
+│ └──────────────────────┘ │            │  Quần short    590.000 ₫ S M ~L~    Bộ đồ xanh        │
+│ Áo khoác zip   590.000 ₫│            │  250.000 ₫     S M L               390.000 ₫          │
 │ S [M] ~L~   ● ●          │            │  staggered columns: 3 at 1440, 2 at 768, 1 at 390     │
 │ ┌──────────────────────┐ │            └──────────────────────────────────────────────────────────┘
 │ │      next look       │ │
@@ -91,25 +95,27 @@ category name is the page's headline, set as large as the home page's.
 ```text
 390 px                                  1440 px
 ┌──────────────────────────┐            ┌───────────────────────────────┬──────────────────────────┐
-│ ← Áo khoác        EN  ☰ │            │                               │ ÁO KHOÁC ZIP             │
-│ ┌──────────────────────┐ │            │                               │ NÂU                      │
+│ ← Áo khoác        EN  ☰ │            │                               │ Áo khoác zip             │
+│ ┌──────────────────────┐ │            │                               │ nâu                      │
 │ │                      │ │            │       photo 1 (3:4),          │ 590.000 ₫                │
 │ │  photo strip, swipe  │ │            │       photos scroll down      │                          │
 │ │   ● ○ ○ ○ ○          │ │            │       in a column             │ Màu  ● Nâu  ○ Xám        │
 │ └──────────────────────┘ │            │                               │ Size  S  [M]  ~L~        │
-│ ÁO KHOÁC ZIP NÂU         │            │                               │ Bảng size ↓              │
+│ Áo khoác zip nâu         │            │                               │ Bảng size ↓              │
 │ 590.000 ₫                │            │                               │ ┌──────────────────────┐ │
 │ Màu  ● Nâu  ○ Xám        │            │                               │ │ Mình muốn đặt Áo     │ │
 │ Size  S  [M]  ~L~        │            │                               │ │ khoác zip, Nâu, M,   │ │
 │ Chất liệu, form, giặt    │            │                               │ │ 590.000 ₫ …          │ │
 │ Bảng size                │            │                               │ └──────────────────────┘ │
 │ Cách đặt hàng            │            │                               │ [ Đặt qua Telegram ]     │
-├──────────────────────────┤            │                               │ [ Đặt qua Zalo ]         │
+├──────────────────────────┤            │                               │ ( Đặt qua Zalo )         │
 │ “Mình muốn đặt … M …”    │            │                               │ + Thêm vào danh sách     │
-│ [Telegram]  [Zalo]   [+] │            │                               │ Chất liệu · Form · Giặt  │
+│ [Telegram]  (Zalo)   (+) │            │                               │ Chất liệu · Form · Giặt  │
 └──────────────────────────┘            └───────────────────────────────┴──────────────────────────┘
   sticky order bar                        sticky panel on the right
 ```
+
+In the wireframes, `[ ]` is the one accent-filled button and `( )` a secondary one.
 
 - Picking a colour shows that colour's photos first. Without JavaScript the colour and size are
   radio chips in a form, and the order buttons are submit buttons that redirect to the messenger

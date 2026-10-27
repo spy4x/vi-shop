@@ -70,13 +70,14 @@ Every id is a UUID version 7. Text a shopper reads is stored in both languages.
 | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Category     | slug, name (vi, en), position                                                                                                                                     |
 | Item         | slug, name (vi, en), description (vi, en), material, fit and care (vi, en), price in dong (integer), category, status (draft, published, hidden), published time |
-| Colour       | item, name (vi, en), swatch hex, sold out                                                                                                                         |
-| Size         | item, label (`S`, `M`, `L`, `Free size`), position, sold out                                                                                                      |
+| Colour       | item, name (vi, en), swatch hex                                                                                                                                      |
+| Size         | item, label (`S`, `M`, `L`, `Free size`), position                                                                                                                   |
+| Sold out     | item, colour, size: one row per combination that is sold out                                                                                                    |
 | Photo        | item, optional colour, position, alt text (vi, en), the processed image variants                                                                                  |
 | Contact link | kind (telegram, zalo, instagram, facebook, phone, e-mail), value, position                                                                                        |
 | FAQ entry    | question and answer (vi, en), position                                                                                                                            |
 
-Photos are processed on upload: metadata is stripped (iPhone photos carry the GPS location of
+Photos are processed by the worker after upload (the browser uploads straight to the file store), and catalog photos get a public read path, since the file store signs downloads for group members only: metadata is stripped (iPhone photos carry the GPS location of
 where they were taken), HEIC is converted, and each photo is stored in a few widths as AVIF and
 WebP for `srcset`.
 
@@ -87,8 +88,8 @@ From the first deploy:
 - **Server-rendered pages that work without JavaScript**, as every Seed website page does.
 - **Two languages with their own URLs:** Vietnamese at `/`, English at `/en/`, `hreflang` between
   them and `x-default` to Vietnamese. Slugs are Vietnamese without diacritics
-  (`/ao-khoac/ao-khoac-zip-nau`), the same slug under `/en/`.
-- **Structured data:** `ClothingStore` with the contact links as `sameAs`; on each item `Product`
+  (`/ao-khoac/ao-khoac-zip-nau`), the same item and category slug under `/en/`. Fixed pages have their own English paths (`/en/list`, `/en/faq`).
+- **Structured data:** `ClothingStore` with social profiles as `sameAs` and the Zalo number as `telephone`; on each item `Product`
   with `Offer` (`priceCurrency: VND`, availability from the sold-out flags), `color`, `size`,
   `material` and every image; `BreadcrumbList`; `ItemList` on category pages; `FAQPage` on the
   FAQ.
@@ -124,7 +125,7 @@ Reusable work is done in Seed and the libraries first; the shop takes it with a 
 | --- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
 | 1   | vi-shop                                                  | Product setup: brand, Seed's own site removed, apps switched off, CI, deploy, domain.    |
 | 2   | Seed                                                     | Image processing for uploads: metadata stripped, HEIC converted, AVIF and WebP widths.   |
-| 3   | Seed ([#276](https://github.com/spy4x/seed/issues/276)) | The public website in every language, with `hreflang`.                                   |
+| 3   | Seed ([#276](https://github.com/spy4x/seed/issues/276)) | The website in several languages, with a per-product default (Vietnamese at `/`, English at `/en/`).                                  |
 | 4   | Seed                                                     | Contact links: a site setting edited in the admin panel.                                 |
 | 5   | preact-components                                        | Storefront patterns in the design language: the look tile, colour swatches, order bar.   |
 | 6   | Seed                                                     | Catalog module: categories, items, colours, sizes, photos; admin screens; public pages.  |
