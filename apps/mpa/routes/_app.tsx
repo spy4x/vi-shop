@@ -1,5 +1,6 @@
 import type { JSX } from "preact"
-import { REPOSITORY_URL } from "../brand.ts"
+import { REPOSITORY_URL, SITE_NAME } from "../brand.ts"
+import { SITE_LANG } from "../site.tsx"
 import type { State } from "../utils.ts"
 import { define } from "../utils.ts"
 
@@ -11,11 +12,11 @@ import { define } from "../utils.ts"
  */
 export default define.page(function App({ Component, state, url }) {
   return (
-    <html lang="en" data-theme="ink" class="h-full">
+    <html lang={SITE_LANG} data-theme="ink" class="h-full">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Seed</title>
+        <title>{SITE_NAME}</title>
         {/* The browser's own frame takes the canvas of the palette the device asks for. */}
         <meta name="theme-color" content="#f3f4f6" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#080b10" media="(prefers-color-scheme: dark)" />

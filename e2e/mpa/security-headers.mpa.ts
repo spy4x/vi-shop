@@ -1,6 +1,5 @@
 import { type APIResponse, expect, test } from "@playwright/test"
 import { watchCspViolations } from "../fixtures/csp.ts"
-import { uuidV7 } from "@jsr/spy4x__platform/universal/uuid"
 
 /** The app's origin, another host than the website's (`e2e/mpa/run.sh`). */
 const SPA = new URL(Deno.env.get("SPA_BASE_URL")!).origin
@@ -37,11 +36,11 @@ test("the website sends the security headers with a page, its stylesheet and an 
   expect(unknown.status()).toBe(404)
   expectSecurityHeaders(unknown)
   // The error page keeps the site's frame, so the visitor can go on from it.
-  expect(await unknown.text()).toContain("Page not found")
-  expect(await unknown.text()).toContain("Main navigation")
+  expect(await unknown.text()).toContain("Không tìm thấy trang")
+  expect(await unknown.text()).toContain(`data-e2e="site-brand"`)
 })
 
-test("a visitor walks the website and its forms without a refusal under the content security policy", async ({ context, page }) => {
+test("a visitor walks the website without a refusal under the content security policy", async ({ context, page }) => {
   const violations = await watchCspViolations(context)
 
   // The stylesheet is asked for and applied: a refused one is never requested.
@@ -49,20 +48,14 @@ test("a visitor walks the website and its forms without a refusal under the cont
   await page.goto("/")
   expect((await stylesheet).status()).toBe(200)
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "The groundwork of your SaaS, already built.",
+    "Vi shop đang chuẩn bị mở cửa",
   )
   expect(await page.evaluate(() => document.styleSheets.length)).toBeGreaterThan(0)
 
-  await page.goto("/pricing")
-  // A form that the website answers with a redirect, to the app's /try.
-  await page.getByRole("button", { name: "Try in the demo: Pro" }).click()
-  await expect(page).toHaveURL(/\/try$/)
-
-  const email = `mpa-csp-${uuidV7().slice(-8)}@example.com`
-  await page.goto("/privacy")
-  await page.locator("[data-e2e=footer-subscribe-email]").fill(email)
-  await page.locator("[data-e2e=footer-subscribe-submit]").click()
-  await expect(page.locator("[data-e2e=subscribe-sent]")).toBeVisible()
+  await page.getByRole("link", { name: "Quyền riêng tư" }).click()
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Quyền riêng tư")
+  await page.getByRole("link", { name: "Điều khoản" }).click()
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Điều khoản")
 
   expect(violations).toEqual([])
 })

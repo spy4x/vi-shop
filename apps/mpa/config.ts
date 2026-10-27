@@ -1,5 +1,3 @@
-import { FORM_ACTIONS } from "@ui/progressive.tsx"
-
 /** What the MPA needs to know about its surroundings. */
 export interface MpaConfig {
   /** Where the MPA reaches the API from the server, such as `http://app-api:8000`. Never a browser URL. */
@@ -43,10 +41,9 @@ export interface RobotsPolicy {
  * choice is plain to read. `Google-Extended` is never blocked: it also decides whether Gemini may
  * use the site in its answers. A product built on Seed changes this to choose differently.
  */
-// Seed's own site: see docs/start-a-product.md
 export const ROBOTS_POLICY: RobotsPolicy = {
   allowBots: [`OAI-SearchBot`, `PerplexityBot`, `Claude-SearchBot`, `Bingbot`],
-  disallow: [FORM_ACTIONS.subscribeConfirm, FORM_ACTIONS.unsubscribe],
+  disallow: [],
 }
 
 /**
