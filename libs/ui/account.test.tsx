@@ -270,7 +270,7 @@ describe("AppFrame", () => {
     )
 
     expect(document.querySelector("header")).toBe(null)
-    expect(document.body.textContent).not.toContain("Seed")
+    expect(document.body.textContent).not.toContain("Vi shop")
     expect(find("[data-e2e=rail-shell-top] [data-e2e=group-picker]")).not.toBe(null)
     expect(find('[data-e2e=rail-shell-bottom] a[href="/notifications"]')).not.toBe(null)
     expect(find(ACCOUNT)).not.toBe(null)
@@ -718,7 +718,7 @@ describe("PublicFrame", () => {
     await mount(<PublicFrame canSignOut={false} onSignOut={() => {}}>page</PublicFrame>)
 
     const mark = find('a[href="/"] [data-e2e=brand-mark]')
-    expect(mark.textContent).toBe("Seed")
+    expect(mark.textContent).toBe("Vi shop")
     expect(mark.querySelector("[aria-hidden=true] svg")).not.toBeNull()
   })
 })
