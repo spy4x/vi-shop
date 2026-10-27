@@ -16,20 +16,20 @@ when:
 
 steps:
   check:
-    image: denoland/deno:2.9.7
+    image: denoland/deno:2.9.7@sha256:fa335acdf6b72106eda2cb6a8cb5f4187e7630e357467489db4b2e7352d5e432
     commands:
       - deno install --frozen
       - deno task check
 
   build:
-    image: denoland/deno:2.9.7
+    image: denoland/deno:2.9.7@sha256:fa335acdf6b72106eda2cb6a8cb5f4187e7630e357467489db4b2e7352d5e432
     commands:
       - deno install --frozen
       - deno task build
     depends_on: [check]
 
   integration:
-    image: denoland/deno:2.9.7
+    image: denoland/deno:2.9.7@sha256:fa335acdf6b72106eda2cb6a8cb5f4187e7630e357467489db4b2e7352d5e432
     environment:
       DB_HOST: postgres
       DB_PORT: "5432"
@@ -68,7 +68,7 @@ steps:
     # Backs a database up and restores it (infra/backup/restore.test.sh) with the database image's
     # own pg_dump, in databases it creates and drops. The image has no restic; Debian's package is
     # of the same 0.18 line as the one in the backup image (infra/backup/Dockerfile).
-    image: postgres:18.6
+    image: postgres:18.6@sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6
     environment:
       PGHOST: postgres
       PGUSER: tester
@@ -92,7 +92,7 @@ steps:
     # the worker and the MPA, on a host apart from the app's, and runs them. It creates its own database
     # (`template_e2e`), so it shares nothing with the integration step, which uses `template_test`
     # at the same time. `DB_NAME` below is only the database the script connects to first.
-    image: mcr.microsoft.com/playwright:v1.57.0-noble
+    image: mcr.microsoft.com/playwright:v1.57.0-noble@sha256:3bed4b1a12f2338642f3d8cba28e291deef3c66bd4a964bbeb3e57bbff511dbd
     environment:
       DB_HOST: postgres
       DB_PORT: "5432"
@@ -164,7 +164,7 @@ steps:
     # other e2e steps use, sends no such headers. Steps have no container tool, so e2e/spa/run.sh
     # installs the built SPA into this container's own nginx (`SPA_SERVER=nginx`) instead of
     # building the image. It creates its own database (`template_e2e_spa`).
-    image: mcr.microsoft.com/playwright:v1.57.0-noble
+    image: mcr.microsoft.com/playwright:v1.57.0-noble@sha256:3bed4b1a12f2338642f3d8cba28e291deef3c66bd4a964bbeb3e57bbff511dbd
     environment:
       DB_HOST: postgres
       DB_PORT: "5432"
@@ -218,7 +218,7 @@ steps:
     # own (`template_e2e_app`); it waits for both itself. It starts the API, the worker, the Vite
     # dev server and a proxy that serves them at http://app.localhost:<port>. A tag runs the set
     # too, because release.yml waits for this workflow.
-    image: mcr.microsoft.com/playwright:v1.57.0-noble
+    image: mcr.microsoft.com/playwright:v1.57.0-noble@sha256:3bed4b1a12f2338642f3d8cba28e291deef3c66bd4a964bbeb3e57bbff511dbd
     when:
       - event: [pull_request, tag]
     environment:
@@ -258,7 +258,7 @@ steps:
     # The specs that start the app with no network need the built SPA behind nginx; a step has no
     # container tool, so `E2E_BUILT=nginx` installs the build into this container's own nginx, as
     # e2e/spa/run.sh does.
-    image: mcr.microsoft.com/playwright:v1.57.0-noble
+    image: mcr.microsoft.com/playwright:v1.57.0-noble@sha256:3bed4b1a12f2338642f3d8cba28e291deef3c66bd4a964bbeb3e57bbff511dbd
     when:
       - event: push
         branch: main
@@ -290,12 +290,12 @@ steps:
 
 services:
   postgres:
-    image: postgres:18.6-alpine
+    image: postgres:18.6-alpine@sha256:10a5c69a83035ab5239f5620d708520e8b28f5aa1f2b20143e6024532edadfb5
     environment:
       POSTGRES_USER: tester
       POSTGRES_PASSWORD: ci-throwaway
       POSTGRES_DB: template_test
   valkey:
-    image: valkey/valkey:8.1
+    image: valkey/valkey:8.1@sha256:8f836008e0986c36adf50da714c7060cf689dbb335f61fe077939d90fa650809
     commands:
       - valkey-server --requirepass ci-throwaway

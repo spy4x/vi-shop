@@ -29,7 +29,10 @@ the shop: its brand, copy, categories, and the order-message wording.
 
 The website (`apps/mpa`), the admin panel (`apps/admin`), the API and the worker. The SPA, billing,
 guest accounts and the public demo stay in the code, so syncs from Seed apply cleanly, but are off
-in the env file and not deployed.
+in the env file: `BILLING_PROVIDER=off`, `GUEST_MODE=false`, `DEMO_MODE=false`. Seed has no switch
+for the SPA, so its container still runs, and in production `MPA_REDIRECT_RULE` sends every request
+to its host (`DOMAIN`, `/api` included) to the website (`infra/envs/.env.example` says why the rule
+is written that long).
 
 ## Languages
 
@@ -47,3 +50,5 @@ admin panel. Sample items for development use generated placeholder images.
 `vi-shop.antonshubin.com` (website) and `admin.vi-shop.antonshubin.com` (admin), on Seed's server,
 deployed the way Seed deploys itself (`docs/deploy.md`). Other projects run on that server and are
 not ours to touch.
+The production env file is committed encrypted as `infra/envs/.env.prod.age` (age64 per line);
+`deno task env:decrypt` writes `infra/envs/.env.prod`, which `deno task deploy` reads.

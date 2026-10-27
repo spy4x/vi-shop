@@ -35,9 +35,8 @@ when:
 
 variables:
   # The one place the image names come from: `<IMAGE_PREFIX>-base`, `-api`, `-spa`, `-mpa`.
-  # Seed's own site: see docs/start-a-product.md
   - &image_env
-    IMAGE_PREFIX: antonshubin/template
+    IMAGE_PREFIX: antonshubin/vi-shop
   # The kaniko executor from woodpeckerci/plugin-kaniko, run as plain commands. No secret.
   - &kaniko
     image: woodpeckerci/plugin-kaniko:2.3.3@sha256:d6ecc0f37561503eeacd8f2189068c5a13c531f5629cf2ce2de0ac144824c9f4

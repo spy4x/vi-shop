@@ -18,7 +18,6 @@ export const BLOG_PATH = `/blog`
 /** The RSS feed of the blog's newest posts. */
 export const RSS_PATH = `/rss.xml`
 
-// Seed's own site: see docs/start-a-product.md
 /** The blog's name, as the feed, the JSON-LD and the RSS link's title call it. */
 export const BLOG_NAME = `${SITE_NAME} blog`
 

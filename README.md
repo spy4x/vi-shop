@@ -1,5 +1,7 @@
 # Vi shop
 
+[![CI](https://ci.antonshubin.com/api/badges/17/status.svg)](https://ci.antonshubin.com/repos/17)
+
 A clothes catalog that looks like a fashion magazine and orders like a chat. Shoppers browse
 looks, pick a size and colour, and send the order to the shop on Telegram or Zalo in one tap. The
 shop edits its items in an admin panel. Vietnamese first, English too.
@@ -11,7 +13,7 @@ another product could reuse goes back to Seed and the shared libraries.
 [docs/shop/design.md](docs/shop/design.md), and the work in the
 [open issues](https://github.com/spy4x/vi-shop/issues).
 
-- Website: https://vi-shop.antonshubin.com (not live yet)
+- Website: https://vi-shop.antonshubin.com (a placeholder until the storefront lands)
 - Stack: Deno, Fresh, Preact, Postgres, Docker Compose, as in Seed.
 
 ## Develop

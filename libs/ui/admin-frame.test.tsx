@@ -125,7 +125,7 @@ describe("AdminShell", () => {
     expect(document.querySelector("[data-e2e=rail-shell-top]")).toBe(null)
     expect(document.querySelector("[data-e2e=admin-mark]")).toBe(null)
     expect(document.querySelector("[data-e2e=rail-shell-column]")!.textContent).not.toContain(
-      "Seed",
+      "Vi shop",
     )
     expect(entryLabels("[data-e2e=rail-shell-rail]")[0]).toBe("Dashboard")
     expect(find("#page").closest("main")).not.toBe(null)
@@ -255,10 +255,10 @@ describe("AdminShell", () => {
 
 describe("adminPageTitle", () => {
   it("names the page's section, then Admin, then the product", () => {
-    expect(adminPageTitle(modules, "/")).toBe("Dashboard · Admin · Seed")
-    expect(adminPageTitle(modules, "/users")).toBe("Users · Admin · Seed")
-    expect(adminPageTitle(modules, "/users/42")).toBe("Users · Admin · Seed")
-    expect(adminPageTitle(modules, "/nowhere")).toBe("Admin · Seed")
+    expect(adminPageTitle(modules, "/")).toBe("Dashboard · Admin · Vi shop")
+    expect(adminPageTitle(modules, "/users")).toBe("Users · Admin · Vi shop")
+    expect(adminPageTitle(modules, "/users/42")).toBe("Users · Admin · Vi shop")
+    expect(adminPageTitle(modules, "/nowhere")).toBe("Admin · Vi shop")
   })
 })
 
@@ -271,7 +271,7 @@ describe("AdminFrame", () => {
     )
     const brand = find("header [data-e2e=admin-mark]").closest("a")!
     expect(brand.getAttribute("href")).toBe("/")
-    expect(brand.textContent).toBe("SeedAdmin")
+    expect(brand.textContent).toBe("Vi shopAdmin")
     expect(find("[data-e2e=admin-mark] span").className).not.toMatch(/accent|primary/)
   })
 })

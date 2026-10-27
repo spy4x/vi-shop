@@ -46,16 +46,12 @@ Event names are kebab-case. Umami stores the page of every event, so a name neve
 
 ## Events
 
-<!-- Seed's own site: see docs/start-a-product.md (hire-me, compare-source) -->
-
 | Event                     | Properties                    | When                                                                                 |
 | ------------------------- | ----------------------------- | ------------------------------------------------------------------------------------ |
 | `try-demo`                | `from`                        | A link to the demo's sign-up: header, hero, closing band, 404 page, footer           |
 | `sign-in`                 | `from`                        | The footer's link to the demo's sign-in                                              |
 | `github`                  | `from`                        | A link into the GitHub repository that names no other event                          |
 | `read-code`               | `from`                        | A link to a part of the code or its docs ("Read the code", the deploy guide)         |
-| `hire-me`                 | `from`                        | A button or link to antonshubin.com's MVP page                                      |
-| `compare-source`          | `product`                     | A source link of a compared product on `/compare`                                    |
 | `on-this-page`            | `section`                     | A link of the "On this page" list (`/features`, `/privacy`, `/terms`)                |
 | `outbound-link`           | `url`, `from`                 | Any other link to another site                                                       |
 | `internal-link`           | `to`, `from`                  | A link within the website that names no event (header, footer, cards, text links)    |
