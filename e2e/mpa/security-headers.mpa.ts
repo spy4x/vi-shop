@@ -8,12 +8,13 @@ const UMAMI = Deno.env.get("MPA_UMAMI_ORIGIN")!
 
 function expectSecurityHeaders(response: APIResponse) {
   const headers = response.headers()
-  // The website has its own host here, so its forms may also redirect to the app's.
-  expect(headers["content-security-policy"]).toBe(
+  // The website has its own host here, so its forms may also redirect to the app's. A rendered
+  // page adds its own nonce to script-src; the storefront's unit tests check that part.
+  expect(headers["content-security-policy"]?.replace(/ 'nonce-[0-9a-f]+'/, "")).toBe(
     `default-src 'self'; script-src 'self' ${UMAMI}; style-src 'self'; img-src 'self' data: https:; ` +
       `connect-src 'self' ${UMAMI}; object-src 'none'; base-uri 'self'; ` +
       `form-action 'self' ${SPA}; ` +
-      "frame-ancestors 'none'",
+      "frame-ancestors 'none'; style-src-attr 'unsafe-inline'",
   )
   expect(headers["x-content-type-options"]).toBe("nosniff")
   expect(headers["referrer-policy"]).toBe("no-referrer")
@@ -48,7 +49,7 @@ test("a visitor walks the website without a refusal under the content security p
   await page.goto("/")
   expect((await stylesheet).status()).toBe(200)
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "Vi shop đang chuẩn bị mở cửa",
+    "Mặc để chuyển động.",
   )
   expect(await page.evaluate(() => document.styleSheets.length)).toBeGreaterThan(0)
 
