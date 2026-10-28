@@ -15,7 +15,7 @@ import { itemModel, photoAddresses, text } from "./catalog.ts"
 import { orderChannels } from "./channels.ts"
 import { ShopFrame } from "./frame.tsx"
 import { categoryPath, itemPath, type Lang } from "./lang.ts"
-import { deliveryLine } from "./order.ts"
+import { deliveryLine, trackingSource } from "./order.ts"
 import { isSoldOut, photoVariants, sizeByLabel } from "./parts.ts"
 import { categoryHref, crumbsJsonLd, itemJsonLd } from "./seo.ts"
 import { COOKIES, cookiesOf, cookieValue, measure, rememberCookie } from "./visit.ts"
@@ -28,6 +28,8 @@ interface ItemData {
   colourId: string | null
   sizeLabel: string | null
   calculator: CalculatorState | null
+  /** The tracking link's source tag the visit arrived with, for the order buttons' events. */
+  source: string | null
 }
 
 /** Whether any size of the item has a height or weight range, so the calculator can answer. */
@@ -140,7 +142,14 @@ export function itemRoute(lang: Lang) {
         .find((size) => size !== undefined)?.label ?? null
 
       return page<ItemData>(
-        { item, category, colourId: colour?.id ?? null, sizeLabel, calculator },
+        {
+          item,
+          category,
+          colourId: colour?.id ?? null,
+          sizeLabel,
+          calculator,
+          source: trackingSource(query),
+        },
         { headers },
       )
     },
@@ -219,6 +228,7 @@ export function itemRoute(lang: Lang) {
           channels={orderChannels(state.contactLinks ?? [])}
           delivery={deliveryLine(state.now?.() ?? new Date(), lang)}
           calculator={data.calculator}
+          source={data.source}
         >
           <section aria-labelledby="facts" class="flex flex-col gap-3" data-e2e="item-facts">
             <h2 id="facts" class="text-xl font-semibold tracking-tight">{words.facts}</h2>

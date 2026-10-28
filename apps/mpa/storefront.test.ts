@@ -280,6 +280,24 @@ describe(`an item page`, () => {
     expect(body).toContain(`https://shop.example.com/ao-khoac/ao-khoac-zip-nau`)
   })
 
+  it(`names each order button's click for Umami with the item and the link's source, and keeps the source`, async () => {
+    const tagged = await get(`/ao-khoac/ao-khoac-zip-nau?utm_source=facebook&utm_medium=share`)
+    const odd = await get(`/ao-khoac/ao-khoac-zip-nau?utm_source=%3Cscript%3E`)
+
+    for (const channel of [`telegram`, `zalo`]) {
+      expect(tagged.body).toMatch(
+        new RegExp(
+          `<button data-umami-event="order-${channel}" data-umami-event-item="ao-khoac-zip-nau" ` +
+            `data-umami-event-source="facebook"[^>]*value="${channel}"`,
+        ),
+      )
+    }
+    expect(tagged.body).toMatch(/<input type="hidden" name="utm_source" value="facebook"/)
+    expect(odd.body).toContain(`data-umami-event-item="ao-khoac-zip-nau"`)
+    expect(odd.body).not.toContain(`data-umami-event-source`)
+    expect(odd.body).not.toContain(`name="utm_source"`)
+  })
+
   it(`shows no calculator for an item whose sizes have no ranges`, async () => {
     const { body } = await get(`/ao/ao-ba-lo-free-size`)
 
@@ -384,7 +402,7 @@ describe(`ordering without JavaScript`, () => {
     expect(response.headers.get(`location`)).toBe(`/`)
   })
 
-  it(`adds a piece to the order list, shows it, orders it, and removes it`, async () => {
+  it(`adds a piece to the order list, shows it, orders it (an Umami event naming its item), and removes it`, async () => {
     const added = await post(`/danh-sach`, { add: `1`, item: `ao-thun-tap`, size: `M` })
     const cookie = added.headers.get(`set-cookie`)!.split(`;`)[0]
 
@@ -395,6 +413,7 @@ describe(`ordering without JavaScript`, () => {
     expect(body).toContain(`data-e2e="list-lines"`)
     expect(body).toContain(`Danh sách (1)`)
     expect(body).toMatch(/data-e2e="list-total">290\.000\s₫/)
+    expect(body).toContain(`data-umami-event="order-telegram" data-umami-event-item="ao-thun-tap"`)
 
     const ordered = await post(`/dat-hang`, { list: `1`, via: `telegram` }, cookie)
     expect(new URL(ordered.headers.get(`location`)!).searchParams.get(`text`)).toContain(

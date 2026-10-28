@@ -115,3 +115,12 @@ export function deliveryLine(now: Date, lang: Lang): string {
     ? words.deliveryToday
     : words.deliveryTomorrow
 }
+
+/**
+ * The tracking link's source tag in `query` (`utm_source`, which `/s/<code>` adds): lowercase
+ * letters, digits and hyphens, as the admin panel allows. Anything else is no source.
+ */
+export function trackingSource(query: URLSearchParams): string | null {
+  const source = query.get(`utm_source`)
+  return source && /^[a-z0-9-]{1,64}$/.test(source) ? source : null
+}

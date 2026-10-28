@@ -18,6 +18,7 @@ import {
   orderMessage,
   orderPreview,
   telegramOrderUrl,
+  trackingSource,
 } from "./order.ts"
 import {
   addToList,
@@ -104,7 +105,10 @@ export function listRoute(lang: Lang) {
     const orderLines = lines.map(({ piece }) => pieceLine(piece, lang))
     const message = orderMessage(orderLines, lang, state.webAppOrigin)
     const preview = orderPreview(orderLines, lang)
-    const actions = orderActions(lang, channels, `order`)
+    const actions = orderActions(lang, channels, `order`, {
+      item: [...new Set(lines.map(({ piece }) => piece.item.slug))].join(`,`),
+      source: trackingSource(new URL(req.url).searchParams),
+    })
     return (
       <ShopFrame
         state={state}

@@ -50,6 +50,11 @@ export interface ItemViewProps {
   colourId: string | null
   sizeLabel: string | null
   channels: OrderChannels
+  /**
+   * The tracking link's source tag the visit arrived with (`utm_source`), or `null`. The order
+   * buttons' events carry it, and the order form keeps it, so the calculator's answer does too.
+   */
+  source: string | null
   /** The delivery promise, worked out on the server at the time of the request. */
   delivery: string
   /** The calculator's state, or `null` when no size of the item has a height or weight range. */
@@ -66,7 +71,7 @@ export interface ItemViewProps {
  * chat without leaving the page.
  */
 export default function ItemView(props: ItemViewProps): JSX.Element {
-  const { lang, origin, path, item, back, channels, delivery, calculator, children } = props
+  const { lang, origin, path, item, back, channels, delivery, calculator, source, children } = props
   const words = WORDS[lang]
   const [colourId, setColourId] = useState(props.colourId)
   const [sizeLabel, setSizeLabel] = useState(props.sizeLabel)
@@ -94,7 +99,7 @@ export default function ItemView(props: ItemViewProps): JSX.Element {
     ]
     : item.photos
 
-  const actions = orderActions(lang, channels, intent)
+  const actions = orderActions(lang, channels, intent, { item: item.slug, source })
 
   const onSubmit = async (event: JSX.TargetedSubmitEvent<HTMLFormElement>) => {
     const via = (event.submitter as HTMLButtonElement | null)?.value
@@ -195,6 +200,7 @@ export default function ItemView(props: ItemViewProps): JSX.Element {
           >
             <input type="hidden" name="item" value={item.slug} />
             <input type="hidden" name="intent" value={intent} />
+            {source && <input type="hidden" name="utm_source" value={source} />}
             {/* Before the size chips: the order step takes the last size sent, a chip if picked. */}
             {askFor && <input type="hidden" name="size" value={askFor} />}
             {item.colours.length > 0 && (

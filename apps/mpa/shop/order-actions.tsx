@@ -6,13 +6,35 @@ import type { OrderChannels, OrderIntent } from "./order.ts"
 import { WORDS } from "./words.ts"
 
 /**
+ * What an order button's click tells Umami, as Seed's `docs/catalog.md` ("Order buttons") names it:
+ * the item's slug (the slugs, comma-separated, on the order list) and the tracking link's source
+ * tag the visit arrived with, if any. Nothing about the shopper. Without Umami's tracker on the
+ * page the attributes send nothing.
+ */
+export interface OrderTrack {
+  item: string
+  source: string | null
+}
+
+/** The `data-umami-*` attributes of the button that orders on `channel`. */
+function trackAttributes(channel: string, track: OrderTrack): Record<string, string> {
+  return {
+    "data-umami-event": `order-${channel}`,
+    "data-umami-event-item": track.item,
+    ...(track.source ? { "data-umami-event-source": track.source } : {}),
+  }
+}
+
+/**
  * The order buttons for the shop's chats, as submit buttons named `via`: Telegram first, so it is
- * the one accent-filled button, then Zalo. A chat the shop has no link for has no button.
+ * the one accent-filled button, then Zalo. A chat the shop has no link for has no button. Each
+ * click is an Umami event (`order-telegram`, `order-zalo`) with `track`.
  */
 export function orderActions(
   lang: Lang,
   channels: OrderChannels,
   intent: OrderIntent,
+  track: OrderTrack,
 ): OrderBarAction[] {
   const words = WORDS[lang]
   const actions: OrderBarAction[] = []
@@ -23,6 +45,7 @@ export function orderActions(
       icon: <IconTelegram aria-hidden="true" class="size-5" />,
       name: `via`,
       value: `telegram`,
+      attributes: trackAttributes(`telegram`, track),
     })
   }
   if (channels.zalo) {
@@ -32,6 +55,7 @@ export function orderActions(
       icon: <IconChatBubble aria-hidden="true" class="size-5" />,
       name: `via`,
       value: `zalo`,
+      attributes: trackAttributes(`zalo`, track),
     })
   }
   return actions
