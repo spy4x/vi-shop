@@ -32,6 +32,8 @@ const catalog = createPublicCatalogRoute({
       return null
     }
   },
+  // The sample shop has no tracking links.
+  link: () => Promise.resolve(null),
 })
 
 Deno.serve(

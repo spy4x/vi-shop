@@ -3,6 +3,7 @@ import { describe, it } from "@std/testing/bdd"
 import { App } from "fresh"
 import { setBuildCache } from "fresh/internal"
 import { asset } from "fresh/runtime"
+import { h } from "preact"
 import { readFormBody } from "@spy4x/server/http/bounded-body"
 import { API_BODIES, FORM_LIMITS } from "./forms.ts"
 import {
@@ -154,12 +155,17 @@ describe("pageMiddleware", () => {
 
 describe("securityHeadersMiddleware", () => {
   /** The app as `main.ts` builds it: the security headers first, then the page middleware. */
-  async function securedApp(appConfig = config) {
+  async function securedApp(appConfig = config, rendered: { nonce?: unknown } = {}) {
     const { fetch } = fakeApi(() => Response.json({}))
     return new App<State>()
       .use(await securityHeadersMiddleware(appConfig))
       .use(pageMiddleware(appConfig, fetch, () => true))
       .get("/page", (ctx) => ctx.html("<p>page</p>"))
+      .get("/rendered", async (ctx) => {
+        const response = await ctx.render(h("p", null, "page"))
+        rendered.nonce = (response as unknown as Record<symbol, unknown>)[FRESH_NONCE]
+        return response
+      })
       .get("/broken", () => {
         throw new Error("a route failed")
       })
@@ -172,10 +178,15 @@ describe("securityHeadersMiddleware", () => {
     "connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://t.me; " +
     "frame-ancestors 'none'; style-src-attr 'unsafe-inline'"
 
-  /** The headers' policy, without the nonce a rendered page adds (the storefront's tests check it). */
-  function expectSecurityHeaders(response: Response) {
-    expect(response.headers.get("content-security-policy")?.replace(/ 'nonce-[0-9a-f]+'/, ""))
-      .toBe(policy)
+  /** Where Fresh leaves a rendered page's nonce on its response (`NONCE_SYMBOL` in Fresh). */
+  const FRESH_NONCE = Symbol.for("__freshNonce")
+
+  /** A page Fresh rendered allows its render's nonce in `script-src`; no other answer has one. */
+  function expectSecurityHeaders(response: Response, rendered = false) {
+    const csp = response.headers.get("content-security-policy") ?? ""
+    const nonces = csp.match(/ 'nonce-[0-9a-f]+'/g) ?? []
+    expect(nonces).toHaveLength(rendered ? 1 : 0)
+    expect(csp.replace(nonces[0] ?? "", "")).toBe(policy)
     expect(response.headers.get("x-content-type-options")).toBe("nosniff")
     expect(response.headers.get("referrer-policy")).toBe("no-referrer")
     expect(response.headers.get("x-frame-options")).toBe("DENY")
@@ -192,11 +203,27 @@ describe("securityHeadersMiddleware", () => {
     expect(response.headers.get("cache-control")).toBe("no-cache")
   })
 
+  it("allows the inline scripts of a rendered page by the nonce Fresh made for that render", async () => {
+    const rendered: { nonce?: unknown } = {}
+    const response = await (await securedApp(config, rendered))(
+      new Request(`${config.webAppOrigin}/rendered`),
+      info,
+    )
+
+    await response.body?.cancel()
+    const nonce = rendered.nonce
+    expect(nonce).toMatch(/^[0-9a-f]+$/)
+    expect(response.headers.get("content-security-policy")).toBe(
+      policy.replace("script-src 'self'", `script-src 'self' 'nonce-${nonce}'`),
+    )
+    expect(response.headers.get("cache-control")).toBe("no-cache")
+  })
+
   it("sends them with the 404 of an unknown address, inside the site's frame", async () => {
     const response = await (await securedApp())(new Request(`${config.webAppOrigin}/nope`), info)
 
     expect(response.status).toBe(404)
-    expectSecurityHeaders(response)
+    expectSecurityHeaders(response, true)
     const page = await response.text()
     expect(page).toContain("Không tìm thấy trang")
     expect(page).toContain(`data-e2e="site-brand"`)
@@ -212,7 +239,7 @@ describe("securityHeadersMiddleware", () => {
     })
 
     expect(response.status).toBe(500)
-    expectSecurityHeaders(response)
+    expectSecurityHeaders(response, true)
     expect(response.headers.get("cache-control")).toBe("no-cache")
     const page = await response.text()
     expect(page).toContain("Đã có lỗi xảy ra")

@@ -7,24 +7,22 @@ import { HttpError, staticFiles } from "fresh"
 import { FORM_ACTIONS } from "@ui/progressive.tsx"
 import { HTTPException } from "hono/http-exception"
 import { createSameOriginCheck } from "@spy4x/server/http/same-origin"
-import { securityHeaderList, withSecurityHeaders } from "@spy4x/server/http/security-headers"
-
-/**
- * Where the order step sends a shopper who orders on Telegram: `/dat-hang` answers the order form
- * with a redirect to `https://t.me/<shop>?text=…`, and a browser applies `form-action` to that
- * redirect too.
- */
-const TELEGRAM_ORIGIN = `https://t.me`
+import {
+  securityHeaderList,
+  withScriptNonce,
+  withSecurityHeaders,
+} from "@spy4x/server/http/security-headers"
 
 /**
  * The header set `securityHeaders` of `@spy4x/server` sends; the helper itself is Hono middleware
- * and the MPA runs on Fresh. A page here loads one stylesheet from its own origin and no script,
- * inline block or font, so the policy is the library's strictest: everything from `'self'` only,
- * no plugins and no framing, images aside (below). Its `Referrer-Policy: no-referrer` also covers
- * the newsletter pages, whose address carries a token.
+ * and the MPA runs on Fresh. A page here loads one stylesheet from its own origin and no font, so
+ * the policy is the library's strictest: everything from `'self'` only, no plugins and no framing,
+ * images and Fresh's inline scripts aside (below and {@link securityHeadersMiddleware}). Its
+ * `Referrer-Policy: no-referrer` also covers the newsletter pages, whose address carries a token.
  *
- * Three things widen it. The order form's redirect to Telegram is allowed in `form-action`
- * ({@link TELEGRAM_ORIGIN}). The pricing page's form posts to the MPA, which redirects to the SPA's
+ * Three things widen it. The order form posts to the MPA, which redirects a shopper who orders on
+ * Telegram to `https://t.me/<shop>?text=…`, so `form-action` allows Telegram. The pricing page's
+ * form posts to the MPA, which redirects to the SPA's
  * sign-up, and a browser applies `form-action` to that redirect too: on a domain of its own the
  * MPA therefore allows the SPA's origin there. With analytics on, the Umami origin is allowed in
  * `script-src` (its tracker) and `connect-src` (the events it sends), and nowhere else. A blog
@@ -32,50 +30,40 @@ const TELEGRAM_ORIGIN = `https://t.me`
  * so `img-src` allows any `https:` image. Only operators write posts, and an image runs no code.
  *
  * The storefront draws each colour swatch in a `style` attribute (preact-components'
- * `SwatchChips` and `LookTile`), whose colours come from the catalog,
- * so no hash can list them: `style-src-attr 'unsafe-inline'` allows style attributes, and only
- * them. `<style>` blocks and stylesheets stay on `'self'`, and a style attribute runs no script.
- * The library's `extraSources` has no `styleSrcAttr`, so the directive is added here.
+ * `SwatchChips` and `LookTile`), whose colours come from the catalog, so no hash can list them:
+ * `style-src-attr 'unsafe-inline'` allows style attributes, and only them. `<style>` blocks and
+ * stylesheets stay on `'self'`, and a style attribute runs no script.
  */
-async function securityHeaderSet(config: MpaConfig): Promise<[string, string][]> {
+function securityHeaderSet(config: MpaConfig): Promise<[string, string][]> {
   const umami = config.analytics?.origin
-  const list = await securityHeaderList({
+  return securityHeaderList({
     extraSources: {
       formAction: [
         ...(config.apiOrigin === config.webAppOrigin ? [] : [config.apiOrigin]),
-        TELEGRAM_ORIGIN,
+        `https://t.me`,
       ],
       imgSrc: [`https:`],
+      styleSrcAttr: [`'unsafe-inline'`],
       ...(umami ? { scriptSrc: [umami], connectSrc: [umami] } : {}),
     },
   })
-  return list.map(([name, value]) =>
-    name.toLowerCase() === `content-security-policy`
-      ? [name, `${value}; style-src-attr 'unsafe-inline'`]
-      : [name, value]
-  )
 }
 
-/** Where Fresh leaves a rendered page's nonce on its response (`NONCE_SYMBOL` in `fresh`). */
-const FRESH_NONCE = Symbol.for(`__freshNonce`)
+/** Where Fresh leaves a rendered page's nonce on its response (`NONCE_SYMBOL` in Fresh). */
+const FRESH_NONCE = Symbol.for("__freshNonce")
 
-/**
- * `set` with the page's nonce allowed in `script-src`. Fresh gives the inline script that wakes a
- * page's islands, and every other inline script it renders, a nonce made for that render.
- */
-function withNonce(set: [string, string][], nonce: unknown): [string, string][] {
-  if (typeof nonce !== `string` || !/^[0-9a-f]+$/.test(nonce)) return set
-  return set.map(([name, value]) =>
-    name.toLowerCase() === `content-security-policy`
-      ? [name, value.replace(`script-src 'self'`, `script-src 'self' 'nonce-${nonce}'`)]
-      : [name, value]
-  )
+/** The nonce Fresh made for the page `response` carries, or `undefined` for any other answer. */
+function freshNonce(response: Response): unknown {
+  return (response as unknown as Record<symbol, unknown>)[FRESH_NONCE]
 }
 
 /**
  * Puts the security headers on every response: pages, static files, redirects, refusals and the
- * answer to an error a route throws. It goes first in the app, before the static files. A page
- * with islands also has its render's nonce allowed for scripts.
+ * answer to an error a route throws. It goes first in the app, before the static files.
+ *
+ * A rendered page also has its render's nonce allowed in `script-src`: Fresh writes the inline
+ * script that wakes a page's islands, and every other inline script it renders, with a nonce made
+ * for that render, which `'self'` alone refuses.
  */
 export async function securityHeadersMiddleware(config: MpaConfig) {
   const set = await securityHeaderSet(config)
@@ -86,8 +74,7 @@ export async function securityHeadersMiddleware(config: MpaConfig) {
     } catch (error) {
       response = errorResponse(error)
     }
-    // deno-lint-ignore no-explicit-any
-    return withSecurityHeaders(response, withNonce(set, (response as any)[FRESH_NONCE]))
+    return withSecurityHeaders(response, withScriptNonce(set, freshNonce(response)))
   })
 }
 
@@ -185,9 +172,9 @@ function withPageHeaders(response: Response, path: string): Response {
     status: response.status,
     statusText: response.statusText,
     headers,
-  }) // Keep the render's nonce for `securityHeadersMiddleware`, which runs outside this one.
-   // deno-lint-ignore no-explicit-any
-  ;(answer as any)[FRESH_NONCE] = (response as any)[FRESH_NONCE]
+  })
+  // Keep the render's nonce for `securityHeadersMiddleware`, which runs outside this middleware.
+  Object.assign(answer, { [FRESH_NONCE]: freshNonce(response) })
   return answer
 }
 

@@ -10,6 +10,11 @@ import {
   AdminCatalogScreen,
 } from "@ui/admin-catalog.tsx"
 import { AdminCatalogItemScreen } from "@ui/admin-catalog-item.tsx"
+import {
+  AdminCatalogSourceEditorScreen,
+  AdminCatalogSourcesScreen,
+} from "@ui/admin-catalog-sources.tsx"
+import { useAdminText } from "@ui/i18n.ts"
 import type { AdminContext, AdminModule } from "../types.ts"
 import { type CatalogState, createCatalogState } from "./state.ts"
 
@@ -45,11 +50,12 @@ function CatalogView({ context }: { context: AdminContext }): JSX.Element {
   )
 }
 
-/** Asks before leaving a page with unsaved changes, in the page's own words. */
+/** Asks before leaving a page with unsaved changes, in the page's own words (a catalog key). */
 function Guard(
   { context, when, message }: { context: AdminContext; when: boolean; message: string },
 ): JSX.Element {
   const [, go] = useLocation()
+  const t = useAdminText()
   return (
     <UnsavedGuard
       when={when}
@@ -57,10 +63,10 @@ function Guard(
       navigate={go}
       leaveGuard={context.leaveGuard}
       labels={{
-        title: `Leave without saving?`,
-        message,
-        leave: `Leave`,
-        stay: `Keep editing`,
+        title: t.t(`AdminApp.leaveTitle`),
+        message: t.t(message),
+        leave: t.t(`AdminApp.leave`),
+        stay: t.t(`AdminApp.keepEditing`),
       }}
     />
   )
@@ -113,12 +119,20 @@ function ItemView(
         onPhotoMove={(from, to) => void state.movePhoto(from, to)}
         onPhotoSave={(photoId, change) => void state.savePhoto(photoId, change)}
         onPhotoRemove={(photoId) => void state.removePhoto(photoId)}
+        shareLinks={catalog?.tracking
+          ? {
+            sources: catalog.sources,
+            links: editor.links,
+            copying: editor.copying,
+            onCopy: (sourceId) => void state.copyLink(sourceId),
+          }
+          : undefined}
         navigate={context.navigate}
       />
       <Guard
         context={context}
         when={state.itemUnsaved()}
-        message="Your changes to this item are lost."
+        message={`AdminApp.leaveItem`}
       />
     </>
   )
@@ -178,24 +192,85 @@ function CategoryView(
       <Guard
         context={context}
         when={state.categoryUnsaved()}
-        message="Your changes to this category are lost."
+        message={`AdminApp.leaveCategory`}
+      />
+    </>
+  )
+}
+
+function SourcesView({ context }: { context: AdminContext }): JSX.Element {
+  const state = catalogState(context)
+  useEffect(() => {
+    void state.load()
+  }, [context])
+  const catalog = state.catalog.value
+  return (
+    <AdminCatalogSourcesScreen
+      sources={catalog?.sources ?? null}
+      tracking={catalog?.tracking ?? true}
+      error={state.error.value}
+      busy={state.busy.value}
+      onRetry={() => void state.load()}
+      onMove={(sourceId, by) => void state.moveSource(sourceId, by)}
+      onDelete={(source) => void state.deleteSource(source)}
+      navigate={context.navigate}
+    />
+  )
+}
+
+/** The source editor, on `/catalog/sources/new` and `/catalog/sources/:id`. */
+function SourceView(
+  { context, params }: { context: AdminContext; params: Record<string, string> },
+): JSX.Element {
+  const state = catalogState(context)
+  const id = params.id === `new` ? null : params.id
+  const [, go] = useLocation()
+  useEffect(() => {
+    state.openSource(id)
+    if (id !== null && !state.findSource(id)) void state.load().then(() => state.openSource(id))
+    else if (state.catalog.value === null) void state.load()
+  }, [id, context])
+  const editor = state.sourceEditor.value
+  const catalog = state.catalog.value
+  const source = id === null ? null : state.findSource(id)
+  return (
+    <>
+      <AdminCatalogSourceEditorScreen
+        source={source}
+        loading={catalog === null}
+        notFound={id !== null && catalog !== null && source === null}
+        value={editor.value}
+        onChange={state.editSource}
+        errors={editor.errors}
+        saving={editor.saving}
+        onSave={async () => {
+          if (await state.saveSource()) go(ADMIN_CATALOG_PATHS.sources)
+        }}
+        navigate={context.navigate}
+      />
+      <Guard
+        context={context}
+        when={state.sourceUnsaved()}
+        message={`AdminApp.leaveSource`}
       />
     </>
   )
 }
 
 /**
- * The shop's catalog (#466): items with photos, colours and sizes, and their categories. Shown
- * only while the API has it on (`CATALOG=true`).
+ * The shop's catalog (#466): items with photos, colours and sizes, their categories, and the
+ * sources of their tracking links (#483). Shown only while the API has it on (`CATALOG=true`).
  */
 export const catalogModule: AdminModule = {
   id: `catalog`,
   optional: true,
-  nav: { name: `Catalog`, href: ADMIN_CATALOG_PATHS.list, Icon: IconPackage },
+  nav: { name: `AdminNav.catalog`, href: ADMIN_CATALOG_PATHS.list, Icon: IconPackage },
   routes: [
     { path: ADMIN_CATALOG_PATHS.list, View: CatalogView },
     { path: ADMIN_CATALOG_PATHS.categories, View: CategoriesView },
     { path: `/catalog/categories/:id`, View: CategoryView },
+    { path: ADMIN_CATALOG_PATHS.sources, View: SourcesView },
+    { path: `/catalog/sources/:id`, View: SourceView },
     { path: `/catalog/:id`, View: ItemView },
   ],
 }
