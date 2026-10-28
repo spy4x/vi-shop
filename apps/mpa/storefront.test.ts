@@ -244,13 +244,15 @@ describe(`an item page`, () => {
     expect(body).toMatch(/màu Xám, size M, 590\.000\s₫/)
   })
 
-  it(`offers to ask when the one size that fits is sold out, with no size picked`, async () => {
+  it(`offers to ask when the one size that fits is sold out, with no size picked and no promise`, async () => {
     const { body } = await get(`/en/ao-khoac/ao-khoac-zip-nau?size=M&height=170&weight=65`)
 
     expect(body).toContain(`Your size is L, but L is sold out. Ask the shop when it is back.`)
     expect(body).not.toMatch(/<input[^>]*name="size"[^>]*checked/)
     expect(body).toMatch(/<input type="hidden" name="size" value="L"/)
     expect(body).toMatch(/<input type="hidden" name="intent" value="ask"/)
+    expect(body).not.toContain(`Add to list`)
+    expect(body).not.toContain(`Same-day delivery in Da Nang if you order before 16:00`)
   })
 
   it(`sends the calculator with the order form's colour and size, and lands on the answer`, async () => {

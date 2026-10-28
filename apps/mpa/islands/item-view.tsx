@@ -80,7 +80,9 @@ export default function ItemView(props: ItemViewProps): JSX.Element {
       ? isSoldOut(item, null, colour)
       : item.sizes.every((each) => isSoldOut(item, each, colour)))
   const askFor = size === null ? calculator?.askFor ?? null : null
-  const intent = soldOut || askFor ? `ask` : `order`
+  // Asking when a size is back: no "Add to list" and no delivery to promise.
+  const asking = soldOut || askFor !== null
+  const intent = asking ? `ask` : `order`
   const line = orderLine(item, colour?.name ?? null, size?.label ?? askFor)
   const message = orderMessage([line], lang, origin, intent)
   const preview = orderPreview([line], lang, intent)
@@ -295,7 +297,7 @@ export default function ItemView(props: ItemViewProps): JSX.Element {
               class="max-lg:order-last"
               message={<OrderBarMessage preview={preview} message={message} />}
               actions={barActions(actions)}
-              secondary={soldOut ? undefined : {
+              secondary={asking ? undefined : {
                 label: words.addToList,
                 icon: <IconPlus aria-hidden="true" class="size-5" />,
                 name: `add`,
@@ -304,7 +306,7 @@ export default function ItemView(props: ItemViewProps): JSX.Element {
               }}
               status={status ?? undefined}
               // A sold-out piece has no delivery to promise; the price already says "Sold out".
-              note={soldOut ? undefined : delivery}
+              note={asking ? undefined : delivery}
               labels={{ region: words.orderRegion, message: words.orderMessage }}
             />
           )
