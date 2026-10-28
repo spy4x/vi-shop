@@ -47,3 +47,7 @@ e2e/mpa/subscribers.mpa.ts
 LICENSE
 README.md
 apps/mpa/contact-links.test.ts
+apps/mpa/static/favicon.svg
+apps/mpa/lighthouse/lighthouserc.json
+apps/mpa/lighthouse/run.sh
+apps/mpa/lighthouse/blog-api.ts
