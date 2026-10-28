@@ -36,7 +36,7 @@ import adminDe from "@i18n/admin/de.json" with { type: "json" }
 import adminAr from "@i18n/admin/ar.json" with { type: "json" }
 import { DEFAULT_PREFERENCES } from "@domain/identity"
 import { AppFrame, PublicFrame } from "./frame.tsx"
-import { AdminFrame, AdminShell } from "./admin-frame.tsx"
+import { ADMIN_PRODUCT, AdminFrame, AdminShell } from "./admin-frame.tsx"
 import {
   AdminPreferencesGroup,
   AppearanceSection,
@@ -209,7 +209,7 @@ function readable(): string[] {
  * and formats.
  */
 const DATA = [
-  `Seed`,
+  ADMIN_PRODUCT,
   `Ctrl`,
   `Ada Lovelace`,
   `AL`,
