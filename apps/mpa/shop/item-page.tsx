@@ -9,7 +9,7 @@ import {
   recommendSize,
 } from "@domain/catalog"
 import { responsiveImage } from "@spy4x/platform/universal/srcset"
-import ItemView, { type CalculatorState } from "../islands/item-view.tsx"
+import ItemView, { type CalculatorAnswer, type CalculatorState } from "../islands/item-view.tsx"
 import { define } from "../utils.ts"
 import { itemModel, photoAddresses, text } from "./catalog.ts"
 import { orderChannels } from "./channels.ts"
@@ -90,7 +90,9 @@ function advice(
  * The colour comes from `?color=` (else the first one left), the size from `?size=`, else the
  * calculator, else the size the shopper filters lists by, else the item's only size. When the
  * calculator was asked just now, its size comes first. The calculator reads `?height=` and
- * `?weight=`, else the visit's cookies, and remembers what it was given.
+ * `?weight=`, else the visit's cookies, and remembers what it was given. Asked with
+ * `Accept: application/json`, an item with a size chart answers the calculator as JSON
+ * ({@link CalculatorAnswer}) instead of the page: the island's calculator answers in place.
  */
 export function itemRoute(lang: Lang) {
   const handler = define.handlers({
@@ -141,6 +143,13 @@ export function itemRoute(lang: Lang) {
         .map((label) => label ? sizeByLabel(item, label) : undefined)
         .find((size) => size !== undefined)?.label ?? null
 
+      // The island's calculator asks for its answer as JSON, so the page does not reload.
+      if (calculator) headers.set(`vary`, `accept`)
+      if (calculator && ctx.req.headers.get(`accept`)?.includes(`application/json`)) {
+        return Response.json({ ...calculator, size: sizeLabel } satisfies CalculatorAnswer, {
+          headers,
+        })
+      }
       return page<ItemData>(
         {
           item,

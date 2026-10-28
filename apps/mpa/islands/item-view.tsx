@@ -1,13 +1,16 @@
 import type { ComponentChildren, JSX } from "preact"
 import { useState } from "preact/hooks"
+import type { Translator } from "@spy4x/platform/universal/i18n"
 import { responsiveImage } from "@spy4x/platform/universal/srcset"
 import { IconPlus } from "@spy4x/preact-icons"
 import { buttonClasses } from "@spy4x/preact-ui/button"
 import { Field } from "@spy4x/preact-ui/field"
+import { I18nContext } from "@spy4x/preact-ui/i18n"
 import { Input } from "@spy4x/preact-ui/input"
 import { OrderBar } from "@spy4x/preact-ui/order-bar"
 import { RadioChips } from "@spy4x/preact-ui/radio-chips"
 import { SwatchChips } from "@spy4x/preact-ui/swatch-chips"
+import { ZoomableImages } from "@spy4x/preact-ui/zoomable-images"
 import { type Lang, PATHS } from "../shop/lang.ts"
 import { isSoldOut, type ItemModel, orderLine, photoVariants, sizeByLabel } from "../shop/parts.ts"
 import { barActions, orderActions, OrderBarMessage } from "../shop/order-actions.tsx"
@@ -17,9 +20,22 @@ import { formatPrice, WORDS } from "../shop/words.ts"
 /**
  * The size calculator's `id`: its button sends the order form (so the colour and size picked go
  * with the height and weight, with or without scripts) to the item's own address with this
- * fragment, and the page lands on the answer.
+ * fragment. Without scripts the page lands on the answer; with them the island asks the same
+ * address for the answer as JSON and shows it in place.
  */
 const CALCULATOR_ID = `size-calculator`
+
+/**
+ * The photo viewer's counter, "2/5", in both languages: the one label of the library's lightbox
+ * that is no prop of `ZoomableImages`, so it comes through the library's translator instead.
+ */
+const LIGHTBOX_WORDS: Translator<string> = {
+  language: `vi`,
+  dir: `ltr`,
+  t: (key, values) =>
+    key === `Lightbox.counterLabel` ? `${values?.position}/${values?.total}` : key,
+  parts: (key) => [key],
+}
 
 /** The size calculator's state, worked out on the server from the address or the visit. */
 export interface CalculatorState {
@@ -33,6 +49,11 @@ export interface CalculatorState {
    * shopper picks another size, the order bar asks when it is back.
    */
   askFor: string | null
+}
+
+/** The item page's answer to the island's calculator: its state, and the size the page picks. */
+export interface CalculatorAnswer extends CalculatorState {
+  size: string | null
 }
 
 /** What the item page hands {@link ItemView}. */
@@ -76,6 +97,8 @@ export default function ItemView(props: ItemViewProps): JSX.Element {
   const [colourId, setColourId] = useState(props.colourId)
   const [sizeLabel, setSizeLabel] = useState(props.sizeLabel)
   const [status, setStatus] = useState<string | null>(null)
+  const [answer, setAnswer] = useState(calculator)
+  const [pending, setAsking] = useState(false)
 
   const colour = item.colours.find((each) => each.id === colourId) ?? null
   const picked = sizeLabel ? sizeByLabel(item, sizeLabel) ?? null : null
@@ -84,7 +107,7 @@ export default function ItemView(props: ItemViewProps): JSX.Element {
     (item.sizes.length === 0
       ? isSoldOut(item, null, colour)
       : item.sizes.every((each) => isSoldOut(item, each, colour)))
-  const askFor = size === null ? calculator?.askFor ?? null : null
+  const askFor = size === null ? answer?.askFor ?? null : null
   // Asking when a size is back: no "Add to list" and no delivery to promise.
   const asking = soldOut || askFor !== null
   const intent = asking ? `ask` : `order`
@@ -101,8 +124,41 @@ export default function ItemView(props: ItemViewProps): JSX.Element {
 
   const actions = orderActions(lang, channels, intent, { item: item.slug, source })
 
+  /**
+   * The calculator's button: the same address the form would load, asked for JSON, so the answer
+   * and the size it picks appear in place. The address goes into the history, so a reload shows
+   * the same answer. When the request fails, the page loads the address as it would without
+   * scripts.
+   */
+  const calculate = async (form: HTMLFormElement, submitter: HTMLElement) => {
+    const query = new URLSearchParams(
+      [...new FormData(form, submitter)].map(([key, value]) => [key, String(value)]),
+    )
+    const address = `${path}?${query}`
+    setAsking(true)
+    try {
+      const response = await fetch(address, { headers: { accept: `application/json` } })
+      if (!response.ok) throw new Error(`The calculator answered ${response.status}`)
+      const next = await response.json() as CalculatorAnswer
+      setAnswer(next)
+      setSizeLabel(next.size)
+      setStatus(null)
+      history.replaceState(history.state, ``, `${address}#${CALCULATOR_ID}`)
+    } catch {
+      location.assign(`${address}#${CALCULATOR_ID}`)
+    } finally {
+      setAsking(false)
+    }
+  }
+
   const onSubmit = async (event: JSX.TargetedSubmitEvent<HTMLFormElement>) => {
-    const via = (event.submitter as HTMLButtonElement | null)?.value
+    const submitter = event.submitter as HTMLButtonElement | null
+    if (submitter?.dataset.calculate !== undefined) {
+      event.preventDefault()
+      if (!pending) await calculate(event.currentTarget, submitter)
+      return
+    }
+    const via = submitter?.value
     if (via !== `zalo` || !channels.zalo) return
     event.preventDefault()
     try {
@@ -119,7 +175,7 @@ export default function ItemView(props: ItemViewProps): JSX.Element {
       <section
         aria-label={words.photos}
         tabIndex={0}
-        class="overflow-x-auto overscroll-x-contain focus-visible:outline-2 focus-visible:outline-focus lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:overflow-visible"
+        class="snap-x snap-mandatory overflow-x-auto overscroll-x-contain focus-visible:outline-2 focus-visible:outline-focus lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:snap-none lg:overflow-visible"
         data-e2e="item-photos"
       >
         {photos.length === 0
@@ -129,14 +185,25 @@ export default function ItemView(props: ItemViewProps): JSX.Element {
             </p>
           )
           : (
-            <ul class="flex snap-x snap-mandatory gap-2 px-4 lg:flex-col lg:gap-4 lg:px-0">
+            // On a phone, a swipe stops on the next photo, centred: each photo is the screen less
+            // a 24 px gutter on each side, so the neighbours peek in. The list is as wide as its
+            // photos and gutters, so the last gutter scrolls too and the last photo can centre.
+            <ul
+              class="flex w-max gap-2 px-6 py-1 lg:w-auto lg:flex-col lg:gap-4 lg:px-0"
+              data-lightbox
+            >
               {photos.map((photo, index) => {
                 const image = responsiveImage(
                   photoVariants(photo),
                   `(min-width: 64rem) 55vw, 88vw`,
                 )
                 return (
-                  <li key={photo.id} class="w-[88%] shrink-0 snap-center lg:w-full">
+                  // Each photo opens full size. Its focus ring goes on the list item, around the
+                  // rounded frame, in the room the list's 4 px padding leaves.
+                  <li
+                    key={photo.id}
+                    class="w-[calc(100vw-3rem)] shrink-0 snap-center snap-always rounded-primary has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus lg:w-full"
+                  >
                     <picture class="block overflow-hidden rounded-primary bg-hover">
                       {image.sources.map((source) => (
                         <source
@@ -156,7 +223,7 @@ export default function ItemView(props: ItemViewProps): JSX.Element {
                         loading={index === 0 ? `eager` : `lazy`}
                         fetchpriority={index === 0 ? `high` : undefined}
                         decoding="async"
-                        class="block aspect-3/4 w-full object-cover"
+                        class="block aspect-3/4 w-full object-cover focus-visible:outline-none"
                       />
                     </picture>
                   </li>
@@ -164,6 +231,16 @@ export default function ItemView(props: ItemViewProps): JSX.Element {
               })}
             </ul>
           )}
+        <I18nContext.Provider value={LIGHTBOX_WORDS}>
+          <ZoomableImages
+            zoomLabel={words.lightbox.zoom}
+            label={words.lightbox.viewer}
+            closeLabel={words.lightbox.close}
+            previousLabel={words.lightbox.previous}
+            nextLabel={words.lightbox.next}
+            fallbackAlt={item.name}
+          />
+        </I18nContext.Provider>
       </section>
 
       {/* Sticky beside the photos from `lg`; on a phone, the order bar comes last. */}
@@ -282,16 +359,21 @@ export default function ItemView(props: ItemViewProps): JSX.Element {
                   form="order"
                   formMethod="get"
                   formAction={`${path}#${CALCULATOR_ID}`}
-                  class={buttonClasses(`outline`, `md`)}
+                  data-calculate
+                  aria-disabled={pending || undefined}
+                  class={buttonClasses(`outline`, `md`, `min-h-12`)}
                 >
                   {words.calculate}
                 </button>
               </div>
-              {calculator.result && (
-                <p role="status" class="mt-3 font-semibold text-pretty" data-e2e="size-advice">
-                  {calculator.result}
-                </p>
-              )}
+              {/* Always there, so a screen reader hears an answer that arrives in place. */}
+              <p
+                role="status"
+                class="mt-3 font-semibold text-pretty empty:mt-0"
+                data-e2e="size-advice"
+              >
+                {answer?.result}
+              </p>
             </details>
           )}
         </div>

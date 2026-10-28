@@ -84,6 +84,8 @@ export interface ShopWords {
   factsOrder: string
   photos: string
   noPhoto: string
+  /** The full-size photo viewer: a photo's name opens with `zoom`, then the viewer's controls. */
+  lightbox: { zoom: string; viewer: string; close: string; previous: string; next: string }
   orderRegion: string
   orderMessage: string
   orderTelegram: string
@@ -197,6 +199,13 @@ const vi: ShopWords = {
     `và báo cách thanh toán.`,
   photos: `Ảnh sản phẩm`,
   noPhoto: `Ảnh đang được cập nhật`,
+  lightbox: {
+    zoom: `Xem ảnh lớn`,
+    viewer: `Xem ảnh`,
+    close: `Đóng`,
+    previous: `Ảnh trước`,
+    next: `Ảnh sau`,
+  },
   orderRegion: `Đặt hàng`,
   orderMessage: `Tin nhắn của bạn`,
   orderTelegram: `Đặt qua Telegram`,
@@ -309,6 +318,13 @@ const en: ShopWords = {
     `confirms and tells you how to pay.`,
   photos: `Photos`,
   noPhoto: `Photo coming soon`,
+  lightbox: {
+    zoom: `View full size`,
+    viewer: `Photo viewer`,
+    close: `Close`,
+    previous: `Previous photo`,
+    next: `Next photo`,
+  },
   orderRegion: `Order`,
   orderMessage: `Your message`,
   orderTelegram: `Order on Telegram`,
