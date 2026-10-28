@@ -9,7 +9,7 @@ import {
   recommendSize,
 } from "@domain/catalog"
 import { responsiveImage } from "@spy4x/platform/universal/srcset"
-import ItemView, { type CalculatorState } from "../islands/item-view.tsx"
+import ItemView, { type CalculatorAnswer, type CalculatorState } from "../islands/item-view.tsx"
 import { define } from "../utils.ts"
 import { itemModel, photoAddresses, text } from "./catalog.ts"
 import { orderChannels } from "./channels.ts"
@@ -90,7 +90,9 @@ function advice(
  * The colour comes from `?color=` (else the first one left), the size from `?size=`, else the
  * calculator, else the size the shopper filters lists by, else the item's only size. When the
  * calculator was asked just now, its size comes first. The calculator reads `?height=` and
- * `?weight=`, else the visit's cookies, and remembers what it was given.
+ * `?weight=`, else the visit's cookies, and remembers what it was given. Asked with
+ * `Accept: application/json`, an item with a size chart answers the calculator as JSON
+ * ({@link CalculatorAnswer}) instead of the page: the island's calculator answers in place.
  */
 export function itemRoute(lang: Lang) {
   const handler = define.handlers({
@@ -141,6 +143,13 @@ export function itemRoute(lang: Lang) {
         .map((label) => label ? sizeByLabel(item, label) : undefined)
         .find((size) => size !== undefined)?.label ?? null
 
+      // The island's calculator asks for its answer as JSON, so the page does not reload.
+      if (calculator) headers.set(`vary`, `accept`)
+      if (calculator && ctx.req.headers.get(`accept`)?.includes(`application/json`)) {
+        return Response.json({ ...calculator, size: sizeLabel } satisfies CalculatorAnswer, {
+          headers,
+        })
+      }
       return page<ItemData>(
         {
           item,
@@ -255,21 +264,26 @@ export function itemRoute(lang: Lang) {
               <h2 id="size-table" class="text-xl font-semibold tracking-tight">
                 {words.sizeTable}
               </h2>
-              <div class="overflow-x-auto">
-                <table class="w-full text-left tabular-nums">
-                  <thead class="text-sm">
-                    <tr>
-                      <th scope="col" class="py-2 pr-4 font-medium">{words.size}</th>
-                      <th scope="col" class="py-2 pr-4 font-medium">{words.heightCm}</th>
-                      <th scope="col" class="py-2 font-medium">{words.weightKg}</th>
+              {
+                /* The cells of preact-ui's Table, without its scroll box: a size chart of three
+                  short columns fits a phone, and a server-rendered box would be a Tab stop that
+                  scrolls nothing. */
+              }
+              <div class="overflow-x-auto rounded-lg bg-surface ring-1 ring-subtle">
+                <table class="min-w-full text-left tabular-nums" data-e2e="size-table">
+                  <thead class="bg-canvas">
+                    <tr class="text-sm font-medium *:whitespace-nowrap *:px-4 *:py-3">
+                      <th scope="col">{words.size}</th>
+                      <th scope="col">{words.heightCm}</th>
+                      <th scope="col">{words.weightKg}</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody class="divide-y divide-subtle">
                     {item.sizes.map((size) => (
-                      <tr key={size.id} class="border-t border-subtle">
-                        <th scope="row" class="py-2 pr-4 font-semibold">{size.label}</th>
-                        <td class="py-2 pr-4">{range(size.heightCm)}</td>
-                        <td class="py-2">{range(size.weightKg)}</td>
+                      <tr key={size.id} class="*:px-4 *:py-3">
+                        <th scope="row" class="font-semibold">{size.label}</th>
+                        <td>{range(size.heightCm)}</td>
+                        <td>{range(size.weightKg)}</td>
                       </tr>
                     ))}
                   </tbody>

@@ -23,7 +23,7 @@ how do I get it. The design answers those three, in that order, and drops the re
    payment step.
 4. **Movement that carries meaning.** A photo grows from its tile into the item page with a
    cross-document view transition (modern browsers only, as the direction says; no script). The
-   photo strip snaps. Nothing else moves.
+   photo strip snaps, one centred photo per swipe. Nothing else moves.
 5. **Worth the price.** The clothes cost more than most, so the item page shows why before the
    price can put anyone off: a close-up of the fabric or a seam among the photos, the material and
    how it is made near the top, no discount banners and no "sale" red. Calm, confident words.
@@ -138,8 +138,10 @@ In the wireframes, `[ ]` is the one accent-filled button and `( )` a secondary o
   size calculator: height in cm and weight in kg, two number fields in a GET form. The server
   answers from this item's size ranges and selects that size. If height and weight point at
   different sizes, it names both and suggests the larger: "Size của bạn ở giữa S và M. Chọn M cho
-  thoải mái." The numbers are kept for the visit. An item whose sizes have no ranges shows no
-  calculator.
+  thoải mái." The numbers are kept for the visit. With JavaScript the answer and the size it
+  picks appear in place, without a reload. An item whose sizes have no ranges shows no calculator.
+- A photo opens full size in a lightbox: the arrow keys move between the item's photos, Escape
+  closes it, and focus returns to the photo.
 - The order bar carries the delivery line from point 6 above the buttons.
 - With no size picked, the buttons stay enabled and the message says "size: chưa chọn" (size: not
   chosen), so a shopper can still ask.

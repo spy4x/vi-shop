@@ -267,6 +267,29 @@ describe(`an item page`, () => {
     )
   })
 
+  it(`answers the island's calculator as JSON with the size the page would pick, and remembers it`, async () => {
+    const grey = SAMPLE_ITEMS[0].colours[1].id
+    const json = { accept: `application/json` }
+    const asked = await get(
+      `/ao-khoac/ao-khoac-zip-nau?color=${grey}&size=S&height=158&weight=62`,
+      json,
+    )
+    const page = await get(`/ao-khoac/ao-khoac-zip-nau?height=158&weight=62`)
+
+    expect(asked.headers.get(`content-type`)).toContain(`application/json`)
+    expect(JSON.parse(asked.body)).toEqual({
+      height: 158,
+      weight: 62,
+      result: `Size của bạn ở giữa S và L. L đang hết hàng, chọn M: size gần nhất còn hàng.`,
+      askFor: null,
+      size: `M`,
+    })
+    expect(asked.headers.get(`set-cookie`)).toMatch(/^fit=158\.62; /)
+    expect(asked.headers.get(`vary`)).toBe(`accept`)
+    expect(page.headers.get(`content-type`)).toContain(`text/html`)
+    expect(page.headers.get(`vary`)).toBe(`accept`)
+  })
+
   it(`shows phones the message in short, without the link, and the whole message on wider screens`, async () => {
     const { body } = await get(`/ao-khoac/ao-khoac-zip-nau?size=M`)
     const preview = body.match(/data-e2e="order-bar-preview"[^>]*>([^<]*)</)?.[1]
