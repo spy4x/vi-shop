@@ -12,7 +12,13 @@ import { orderChannels } from "./channels.ts"
 import { photoVariants } from "./parts.ts"
 import { ShopFrame } from "./frame.tsx"
 import { itemPath, type Lang, PATHS } from "./lang.ts"
-import { deliveryLine, type OrderIntent, orderMessage, telegramOrderUrl } from "./order.ts"
+import {
+  deliveryLine,
+  type OrderIntent,
+  orderMessage,
+  orderPreview,
+  telegramOrderUrl,
+} from "./order.ts"
 import {
   addToList,
   COOKIES,
@@ -27,11 +33,20 @@ import {
   writeList,
 } from "./visit.ts"
 import { formatPrice, WORDS } from "./words.ts"
-import { barActions, orderActions } from "./order-actions.tsx"
+import { barActions, orderActions, OrderBarMessage } from "./order-actions.tsx"
 
 /** A text field of a form, or `""`. */
 function field(form: FormData, name: string): string {
   const value = form.get(name)
+  return typeof value === `string` ? value : ``
+}
+
+/**
+ * The last size `form` sent. An item page sends the size the calculator named first, as a hidden
+ * field, and the size chip the shopper picked after it, so a picked size wins.
+ */
+function lastSize(form: FormData): string {
+  const value = form.getAll(`size`).at(-1)
   return typeof value === `string` ? value : ``
 }
 
@@ -61,7 +76,7 @@ export function listRoute(lang: Lang) {
         const piece = pickedPiece(items, {
           item: field(form, `item`),
           color: field(form, `color`),
-          size: field(form, `size`),
+          size: lastSize(form),
         })
         if (piece) {
           entries = addToList(entries, {
@@ -86,11 +101,9 @@ export function listRoute(lang: Lang) {
     const lines = listLines(readList(cookieValue(cookiesOf(req), COOKIES.list)), items)
     const total = lines.reduce((sum, { piece }) => sum + piece.item.price, 0)
     const channels = orderChannels(state.contactLinks ?? [])
-    const message = orderMessage(
-      lines.map(({ piece }) => pieceLine(piece, lang)),
-      lang,
-      state.webAppOrigin,
-    )
+    const orderLines = lines.map(({ piece }) => pieceLine(piece, lang))
+    const message = orderMessage(orderLines, lang, state.webAppOrigin)
+    const preview = orderPreview(orderLines, lang)
     const actions = orderActions(lang, channels, `order`)
     return (
       <ShopFrame
@@ -150,7 +163,7 @@ export function listRoute(lang: Lang) {
             {actions.length > 0
               ? (
                 <OrderBar
-                  message={message}
+                  message={<OrderBarMessage preview={preview} message={message} />}
                   actions={barActions(actions)}
                   note={deliveryLine(state.now?.() ?? new Date(), lang)}
                   labels={{ region: words.orderRegion, message: words.orderMessage }}
@@ -250,7 +263,7 @@ export function orderRoute(lang: Lang) {
         : [pickedPiece(items, {
           item: field(form, `item`),
           color: field(form, `color`),
-          size: field(form, `size`),
+          size: lastSize(form),
         })].filter((piece) => piece !== null)
       const lines = pieces.map((piece) => pieceLine(piece, lang))
       const back = fromList

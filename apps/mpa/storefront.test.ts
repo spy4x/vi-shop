@@ -229,6 +229,55 @@ describe(`an item page`, () => {
     expect(between.body).toMatch(/size M, ₫590,000/)
   })
 
+  it(`offers the nearest size in stock when the larger of two is sold out, and picks it`, async () => {
+    const grey = SAMPLE_ITEMS[0].colours[1].id
+    // The form sends the chip picked before (S) along; the answer's size wins over it.
+    const { body } = await get(
+      `/ao-khoac/ao-khoac-zip-nau?color=${grey}&size=S&height=158&weight=62`,
+    )
+
+    expect(body).toContain(
+      `Size của bạn ở giữa S và L. L đang hết hàng, chọn M: size gần nhất còn hàng.`,
+    )
+    expect(body).toMatch(/<input[^>]*value="M"[^>]*checked/)
+    expect(body).toMatch(new RegExp(`<input[^>]*value="${grey}"[^>]*checked`))
+    expect(body).toMatch(/màu Xám, size M, 590\.000\s₫/)
+  })
+
+  it(`offers to ask when the one size that fits is sold out, with no size picked`, async () => {
+    const { body } = await get(`/en/ao-khoac/ao-khoac-zip-nau?size=M&height=170&weight=65`)
+
+    expect(body).toContain(`Your size is L, but L is sold out. Ask the shop when it is back.`)
+    expect(body).not.toMatch(/<input[^>]*name="size"[^>]*checked/)
+    expect(body).toMatch(/<input type="hidden" name="size" value="L"/)
+    expect(body).toMatch(/<input type="hidden" name="intent" value="ask"/)
+  })
+
+  it(`sends the calculator with the order form's colour and size, and lands on the answer`, async () => {
+    const { body } = await get(`/ao-khoac/ao-khoac-zip-nau`)
+
+    expect(body).toMatch(/<details[^>]*id="size-calculator"/)
+    expect(body).toMatch(
+      /<input[^>]*name="height"[^>]*form="order"|<input[^>]*form="order"[^>]*name="height"/,
+    )
+    expect(body).toMatch(
+      /<button[^>]*form="order"[^>]*formmethod="get"[^>]*formaction="\/ao-khoac\/ao-khoac-zip-nau#size-calculator"/i,
+    )
+  })
+
+  it(`shows phones the message in short, without the link, and the whole message on wider screens`, async () => {
+    const { body } = await get(`/ao-khoac/ao-khoac-zip-nau?size=M`)
+    const preview = body.match(/data-e2e="order-bar-preview"[^>]*>([^<]*)</)?.[1]
+
+    expect(preview).toMatch(
+      /^Chào shop, mình muốn đặt: Áo khoác zip, màu Nâu, size M, 590\.000\s₫$/,
+    )
+    expect(body).toMatch(
+      /<span[^>]*class="line-clamp-2[^"]*lg:hidden"[^>]*data-e2e="order-bar-preview"/,
+    )
+    expect(body).toContain(`https://shop.example.com/ao-khoac/ao-khoac-zip-nau`)
+  })
+
   it(`shows no calculator for an item whose sizes have no ranges`, async () => {
     const { body } = await get(`/ao/ao-ba-lo-free-size`)
 
@@ -305,6 +354,18 @@ describe(`ordering without JavaScript`, () => {
     )
   })
 
+  it(`orders the size chip picked after the size the calculator named`, async () => {
+    const body = new URLSearchParams([
+      [`item`, `ao-khoac-zip-nau`],
+      [`size`, `L`],
+      [`size`, `M`],
+      [`via`, `telegram`],
+    ])
+    const response = await shop().fetch(`/dat-hang`, { method: `POST`, headers: sameOrigin, body })
+
+    expect(new URL(response.headers.get(`location`)!).searchParams.get(`text`)).toContain(`size M,`)
+  })
+
   it(`shows the message to copy and a link to the Zalo chat for "Order on Zalo"`, async () => {
     const response = await post(`/dat-hang`, { item: `ao-thun-tap`, size: `S`, via: `zalo` })
     const body = await response.text()
@@ -373,6 +434,14 @@ describe(`the security policy`, () => {
     expect(nonce).toBeDefined()
     expect(policy).toContain(`script-src 'self' 'nonce-${nonce}';`)
     expect(policy).not.toMatch(/script-src[^;]*unsafe-inline/)
+  })
+
+  it(`lets the order form send the shopper on to the Telegram chat`, async () => {
+    const { headers } = await get(`/`)
+
+    expect(headers.get(`content-security-policy`)).toMatch(
+      /form-action 'self'[^;]* https:\/\/t\.me;/,
+    )
   })
 
   it(`allows the swatches' style attributes, and keeps style blocks on the site's own files`, async () => {

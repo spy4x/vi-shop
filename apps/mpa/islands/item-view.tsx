@@ -10,9 +10,16 @@ import { RadioChips } from "@spy4x/preact-ui/radio-chips"
 import { SwatchChips } from "@spy4x/preact-ui/swatch-chips"
 import { type Lang, PATHS } from "../shop/lang.ts"
 import { isSoldOut, type ItemModel, orderLine, photoVariants, sizeByLabel } from "../shop/parts.ts"
-import { barActions, orderActions } from "../shop/order-actions.tsx"
-import { type OrderChannels, orderMessage } from "../shop/order.ts"
+import { barActions, orderActions, OrderBarMessage } from "../shop/order-actions.tsx"
+import { type OrderChannels, orderMessage, orderPreview } from "../shop/order.ts"
 import { formatPrice, WORDS } from "../shop/words.ts"
+
+/**
+ * The size calculator's `id`: its button sends the order form (so the colour and size picked go
+ * with the height and weight, with or without scripts) to the item's own address with this
+ * fragment, and the page lands on the answer.
+ */
+const CALCULATOR_ID = `size-calculator`
 
 /** The size calculator's state, worked out on the server from the address or the visit. */
 export interface CalculatorState {
@@ -21,6 +28,11 @@ export interface CalculatorState {
   weight: number | null
   /** The answer, such as "Your size: M", or `null` before the shopper asks. */
   result: string | null
+  /**
+   * The sold-out size the answer named when no size near it is left, such as `"L"`: until the
+   * shopper picks another size, the order bar asks when it is back.
+   */
+  askFor: string | null
 }
 
 /** What the item page hands {@link ItemView}. */
@@ -67,13 +79,11 @@ export default function ItemView(props: ItemViewProps): JSX.Element {
     (item.sizes.length === 0
       ? isSoldOut(item, null, colour)
       : item.sizes.every((each) => isSoldOut(item, each, colour)))
-  const intent = soldOut ? `ask` : `order`
-  const message = orderMessage(
-    [orderLine(item, colour?.name ?? null, size?.label ?? null)],
-    lang,
-    origin,
-    intent,
-  )
+  const askFor = size === null ? calculator?.askFor ?? null : null
+  const intent = soldOut || askFor ? `ask` : `order`
+  const line = orderLine(item, colour?.name ?? null, size?.label ?? askFor)
+  const message = orderMessage([line], lang, origin, intent)
+  const preview = orderPreview([line], lang, intent)
 
   const photos = colour
     ? [
@@ -183,6 +193,8 @@ export default function ItemView(props: ItemViewProps): JSX.Element {
           >
             <input type="hidden" name="item" value={item.slug} />
             <input type="hidden" name="intent" value={intent} />
+            {/* Before the size chips: the order step takes the last size sent, a chip if picked. */}
+            {askFor && <input type="hidden" name="size" value={askFor} />}
             {item.colours.length > 0 && (
               <SwatchChips
                 legend={words.colour}
@@ -228,21 +240,21 @@ export default function ItemView(props: ItemViewProps): JSX.Element {
           </form>
           {calculator && (
             <details
+              id={CALCULATOR_ID}
               open={calculator.result !== null}
               class="rounded-primary border border-subtle px-4 py-3"
               data-e2e="size-calculator"
             >
               <summary class="cursor-pointer font-medium">{words.calculator}</summary>
-              <form method="get" action={path} class="mt-4 flex flex-wrap items-end gap-3">
-                {colour && <input type="hidden" name="color" value={colour.id} />}
+              <div class="mt-4 flex flex-wrap items-end gap-3">
                 <Field id="height" label={words.heightCm} class="w-32">
                   <Input
                     type="number"
                     name="height"
+                    form="order"
                     inputMode="numeric"
                     min={1}
                     max={250}
-                    required
                     defaultValue={calculator.height?.toString() ?? ``}
                   />
                 </Field>
@@ -250,17 +262,23 @@ export default function ItemView(props: ItemViewProps): JSX.Element {
                   <Input
                     type="number"
                     name="weight"
+                    form="order"
                     inputMode="numeric"
                     min={1}
                     max={300}
-                    required
                     defaultValue={calculator.weight?.toString() ?? ``}
                   />
                 </Field>
-                <button type="submit" class={buttonClasses(`outline`, `md`)}>
+                <button
+                  type="submit"
+                  form="order"
+                  formMethod="get"
+                  formAction={`${path}#${CALCULATOR_ID}`}
+                  class={buttonClasses(`outline`, `md`)}
+                >
                   {words.calculate}
                 </button>
-              </form>
+              </div>
               {calculator.result && (
                 <p role="status" class="mt-3 font-semibold text-pretty" data-e2e="size-advice">
                   {calculator.result}
@@ -275,7 +293,7 @@ export default function ItemView(props: ItemViewProps): JSX.Element {
             <OrderBar
               form="order"
               class="max-lg:order-last"
-              message={message}
+              message={<OrderBarMessage preview={preview} message={message} />}
               actions={barActions(actions)}
               secondary={soldOut ? undefined : {
                 label: words.addToList,

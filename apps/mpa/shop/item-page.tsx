@@ -38,23 +38,46 @@ function hasChart(sizes: readonly CatalogSize[]): boolean {
 /**
  * The size calculator's answer for `height` and `weight`, in words, and the size it picks: the
  * size itself, or the larger of two when the height and the weight point at different sizes.
+ *
+ * Stock in `colour` decides the pick. A larger size that is sold out gives way to the nearest size
+ * in between that is left; when none is left, the answer names the sold-out size in `askFor`, so
+ * the order bar asks the shop when it is back.
  */
 function advice(
   item: PublicCatalogItem,
+  colour: { id: string } | null,
   height: number | null,
   weight: number | null,
   words: ShopWords,
-): { result: string | null; size: string | null } {
-  if (height === null || weight === null) return { result: null, size: null }
+): { result: string | null; size: string | null; askFor: string | null } {
+  if (height === null || weight === null) return { result: null, size: null, askFor: null }
   const answer = recommendSize(item.sizes, { heightCm: height, weightKg: weight })
-  if (answer === null) return { result: words.outsideChart, size: null }
+  if (answer === null) return { result: words.outsideChart, size: null, askFor: null }
+  const left = (size: CatalogSize) => !isSoldOut(item, size, colour)
   if (answer.kind === `size`) {
-    return { result: words.yourSizeIs(answer.size.label), size: answer.size.label }
+    const label = answer.size.label
+    return left(answer.size)
+      ? { result: words.yourSizeIs(label), size: label, askFor: null }
+      : { result: words.fitSoldOut(label), size: null, askFor: label }
   }
-  return {
-    result: words.between(answer.smaller.label, answer.larger.label),
-    size: answer.larger.label,
+  const { smaller, larger } = answer
+  if (left(larger)) {
+    return { result: words.between(smaller.label, larger.label), size: larger.label, askFor: null }
   }
+  // From just below the larger size down to the smaller one: the nearest size still in stock.
+  const from = item.sizes.indexOf(smaller)
+  const pick = item.sizes.slice(from, item.sizes.indexOf(larger)).reverse().find(left)
+  return pick
+    ? {
+      result: words.betweenSoldOut(smaller.label, larger.label, pick.label),
+      size: pick.label,
+      askFor: null,
+    }
+    : {
+      result: words.betweenNoneLeft(smaller.label, larger.label),
+      size: null,
+      askFor: larger.label,
+    }
 }
 
 /**
@@ -63,7 +86,8 @@ function advice(
  * item answers 404; an item asked for under another category's path redirects to its own.
  *
  * The colour comes from `?color=` (else the first one left), the size from `?size=`, else the
- * calculator, else the size the shopper filters lists by, else the item's only size. The calculator reads `?height=` and
+ * calculator, else the size the shopper filters lists by, else the item's only size. When the
+ * calculator was asked just now, its size comes first. The calculator reads `?height=` and
  * `?weight=`, else the visit's cookies, and remembers what it was given.
  */
 export function itemRoute(lang: Lang) {
@@ -90,6 +114,9 @@ export function itemRoute(lang: Lang) {
 
       let calculator: CalculatorState | null = null
       let advised: string | null = null
+      // Asked just now with an answer: its size (or none, when it is sold out) wins over the size
+      // the form sent along.
+      let answered = false
       if (hasChart(item.sizes)) {
         const asked = query.has(`height`) || query.has(`weight`)
         const [savedHeight, savedWeight] = cookieValue(cookies, COOKIES.fit).split(`.`)
@@ -100,14 +127,15 @@ export function itemRoute(lang: Lang) {
           const fit = height === null && weight === null ? `` : `${height ?? ``}.${weight ?? ``}`
           rememberCookie(headers, origin, COOKIES.fit, fit)
         }
-        const answer = advice(item, height, weight, WORDS[lang])
-        calculator = { height, weight, result: answer.result }
+        const answer = advice(item, colour, height, weight, WORDS[lang])
+        calculator = { height, weight, result: answer.result, askFor: answer.askFor }
         advised = answer.size
+        answered = asked && (answer.size !== null || answer.askFor !== null)
       }
       const filtered = cookieValue(cookies, COOKIES.size)
       // A single size, such as "Free size", is picked from the start.
       const only = item.sizes.length === 1 ? item.sizes[0].label : null
-      const sizeLabel = [query.get(`size`), advised, filtered, only]
+      const sizeLabel = (answered ? [advised] : [query.get(`size`), advised, filtered, only])
         .map((label) => label ? sizeByLabel(item, label) : undefined)
         .find((size) => size !== undefined)?.label ?? null
 
@@ -219,7 +247,7 @@ export function itemRoute(lang: Lang) {
               </h2>
               <div class="overflow-x-auto">
                 <table class="w-full text-left tabular-nums">
-                  <thead class="text-sm text-muted">
+                  <thead class="text-sm">
                     <tr>
                       <th scope="col" class="py-2 pr-4 font-medium">{words.size}</th>
                       <th scope="col" class="py-2 pr-4 font-medium">{words.heightCm}</th>

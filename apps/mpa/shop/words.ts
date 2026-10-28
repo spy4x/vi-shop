@@ -68,6 +68,12 @@ export interface ShopWords {
   yourSizeIs: (size: string) => string
   between: (smaller: string, larger: string) => string
   outsideChart: string
+  /** The calculator's size is sold out in the colour picked, and no size in between is left. */
+  fitSoldOut: (size: string) => string
+  /** Between two sizes, the larger is sold out: `pick` is the nearest one in between in stock. */
+  betweenSoldOut: (smaller: string, larger: string, pick: string) => string
+  /** Between two sizes, and every size from one to the other is sold out. */
+  betweenNoneLeft: (smaller: string, larger: string) => string
   material: string
   fit: string
   care: string
@@ -174,6 +180,12 @@ const vi: ShopWords = {
   between: (smaller, larger) =>
     `Size của bạn ở giữa ${smaller} và ${larger}. Chọn ${larger} cho thoải mái.`,
   outsideChart: `Số đo này nằm ngoài bảng size. Nhắn shop để được tư vấn nhé.`,
+  fitSoldOut: (size) =>
+    `Size của bạn: ${size}, nhưng ${size} đang hết hàng. Hỏi shop khi nào có lại nhé.`,
+  betweenSoldOut: (smaller, larger, pick) =>
+    `Size của bạn ở giữa ${smaller} và ${larger}. ${larger} đang hết hàng, chọn ${pick}: size gần nhất còn hàng.`,
+  betweenNoneLeft: (smaller, larger) =>
+    `Size của bạn ở giữa ${smaller} và ${larger}, nhưng các size này đang hết hàng. Hỏi shop khi nào có lại nhé.`,
   material: `Chất liệu`,
   fit: `Form`,
   care: `Giặt và bảo quản`,
@@ -280,6 +292,12 @@ const en: ShopWords = {
   between: (smaller, larger) =>
     `You are between ${smaller} and ${larger}. ${larger} will be more comfortable.`,
   outsideChart: `These measurements are outside the size chart. Message the shop for advice.`,
+  fitSoldOut: (size) =>
+    `Your size is ${size}, but ${size} is sold out. Ask the shop when it is back.`,
+  betweenSoldOut: (smaller, larger, pick) =>
+    `You are between ${smaller} and ${larger}. ${larger} is sold out, so take ${pick}: the nearest size in stock.`,
+  betweenNoneLeft: (smaller, larger) =>
+    `You are between ${smaller} and ${larger}, and those sizes are sold out. Ask the shop when they are back.`,
   material: `Material`,
   fit: `Fit`,
   care: `Care`,

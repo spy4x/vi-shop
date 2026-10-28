@@ -67,6 +67,21 @@ export function orderMessage(
   return [greeting, ...body, ...total].join(`\n`)
 }
 
+/**
+ * The message as a phone's order bar quotes it: the greeting and the pieces on one line, without
+ * the addresses or the total, such as `Chào shop, mình muốn đặt: Áo khoác zip, màu Nâu, size M,
+ * 590.000 ₫`. The full {@link orderMessage} is what the chat receives.
+ */
+export function orderPreview(
+  lines: readonly OrderLine[],
+  lang: Lang,
+  intent: OrderIntent = `order`,
+): string {
+  const words = WORDS[lang].message
+  const greeting = intent === `ask` ? words.ask : lines.length > 1 ? words.orderMany : words.order
+  return `${greeting} ${lines.map((line) => lineText(line, lang).slice(2)).join(`; `)}`
+}
+
 /** The shop's chats an order can go to: the first Telegram and the first Zalo contact link. */
 export interface OrderChannels {
   /** `https://t.me/<username>`, or `null` when the shop has no Telegram link. */

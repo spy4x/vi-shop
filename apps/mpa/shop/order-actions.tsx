@@ -1,3 +1,4 @@
+import type { JSX } from "preact"
 import { IconChatBubble, IconTelegram } from "@spy4x/preact-icons"
 import type { OrderBarAction } from "@spy4x/preact-ui/order-bar"
 import type { Lang } from "./lang.ts"
@@ -41,4 +42,21 @@ export function barActions(
   actions: readonly OrderBarAction[],
 ): readonly [OrderBarAction] | readonly [OrderBarAction, OrderBarAction] {
   return actions.slice(0, 2) as [OrderBarAction] | [OrderBarAction, OrderBarAction]
+}
+
+/**
+ * What an order bar's bubble shows: on a phone, where the bar is stuck over the page, `preview`
+ * in at most two lines; from `lg`, beside the photos, the whole `message` the chat receives.
+ */
+export function OrderBarMessage(
+  { preview, message }: { preview: string; message: string },
+): JSX.Element {
+  return (
+    <>
+      <span class="line-clamp-2 whitespace-normal lg:hidden" data-e2e="order-bar-preview">
+        {preview}
+      </span>
+      <span class="max-lg:hidden">{message}</span>
+    </>
+  )
 }
