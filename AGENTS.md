@@ -37,6 +37,24 @@ included) to the website (`infra/envs/.env.example` says why the rule is written
 The first operator is made on the server with `deno task operator:create <address>` (Seed's
 `docs/deploy.md`).
 
+## The storefront
+
+The website is the storefront, in `apps/mpa`:
+
+- `shop/`: the shop's own code. `catalog.ts` keeps a one-minute snapshot of the public catalog API
+  and is server-only (it imports arktype through `@domain/catalog`). `parts.ts`, `order.ts`,
+  `lang.ts`, `words.ts` and `order-actions.tsx` are what the item page's island loads, so they
+  import no server code and only types from `@domain/catalog`.
+- `islands/item-view.tsx`: the item page's photos, colour and size choice and order bar.
+- Routes: Vietnamese at `/`, `/<category>`, `/<category>/<item>`, `/danh-sach` (the order list),
+  `/dat-hang` (the order step) and `/hoi-dap` (FAQ); English under `/en/` with `/en/list`,
+  `/en/order` and `/en/faq`. `/anh/<photo id>/<file>` passes the catalog's photos through from the
+  API, since the website's host does not route `/api`.
+- `lighthouse/sample-shop.ts` and `lighthouse/photos/` are the sample shop that the Lighthouse run
+  and the tests use; `lighthouse/shop-api.ts` serves it.
+- Every page works without JavaScript: the order buttons are a form that redirects to Telegram or
+  shows the Zalo message to copy, and the order list lives in a cookie.
+
 ## Languages
 
 Vietnamese is the default language, English the second. Every page, label, item text and

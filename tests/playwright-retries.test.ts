@@ -20,6 +20,7 @@ async function loadConfigs(): Promise<Record<string, { default: { retries?: numb
     "playwright.config.ts": await import("../playwright.config.ts"),
     "e2e/spa/playwright.config.ts": await import("../e2e/spa/playwright.config.ts"),
     "e2e/mpa/playwright.config.ts": await import("../e2e/mpa/playwright.config.ts"),
+    "e2e/shop/playwright.config.ts": await import("../e2e/shop/playwright.config.ts"),
   }
 }
 

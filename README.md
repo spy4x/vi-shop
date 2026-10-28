@@ -13,7 +13,7 @@ another product could reuse goes back to Seed and the shared libraries.
 [docs/shop/design.md](docs/shop/design.md), and the work in the
 [open issues](https://github.com/spy4x/vi-shop/issues).
 
-- Website: https://vi-shop.antonshubin.com (a placeholder until the storefront lands)
+- Website: https://vi-shop.antonshubin.com
 - Stack: Deno, Fresh, Preact, Postgres, Docker Compose, as in Seed.
 
 ## Develop
@@ -22,6 +22,10 @@ another product could reuse goes back to Seed and the shared libraries.
 deno task init
 deno task dev
 ```
+
+The storefront reads the catalog from the API, so a fresh database shows an empty shop until
+items are added in the admin panel. To see it with sample items and no API, run
+`deno task lighthouse`, or start the sample API the way `apps/mpa/lighthouse/run.sh` does.
 
 Seed's [development guide](docs/development.md) covers the rest.
 

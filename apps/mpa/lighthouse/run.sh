@@ -2,7 +2,7 @@
 # The Lighthouse check of the public website (`deno task lighthouse`): every page in
 # lighthouserc.json must score, in Lighthouse mobile, at least 95 for performance and 100 for
 # accessibility, best practices and SEO, the median of three runs ("Design gate" in the global
-# agent rules). Starts the blog API stand-in (blog-api.ts) on 48412, the built MPA (`deno task
+# agent rules). Starts the shop API stand-in (shop-api.ts) on 48412, the built MPA (`deno task
 # mpa:build` first) on port 48410, nginx with gzip in
 # front of it on 48411 (nginx.conf), and Lighthouse CI. Reports land in .lighthouseci/.
 # CI runs this script (.woodpecker/ci.yml); run it the same way on a machine, from the repository
@@ -44,12 +44,13 @@ wait_for() { # <name> <pid> <url>
   return 1
 }
 
-# The blog's pages read the API: blog-api.ts answers its public routes with the dev seed's
-# published post, so /blog and that post are measured with content. Every other API address
-# answers 404, and the pages render without it.
-timeout 900 deno run --allow-net=127.0.0.1 "$HERE/blog-api.ts" 48412 >"$SCRATCH/api.log" 2>&1 &
+# The shop pages read the API: shop-api.ts answers the public catalog and the contact links with
+# the sample shop (sample-shop.ts), so the shop pages are measured with content and photos. Every
+# other API address answers 404, and the pages render without it.
+timeout 900 deno run --allow-net=127.0.0.1 --allow-read=apps/mpa/lighthouse/photos "$HERE/shop-api.ts" 48412 \
+  >"$SCRATCH/api.log" 2>&1 &
 PIDS+=($!)
-wait_for api "${PIDS[-1]}" http://127.0.0.1:48412/api/blog/posts
+wait_for api "${PIDS[-1]}" http://127.0.0.1:48412/api/catalog
 
 # Production mode, with example hosts.
 ENV=prod DOMAIN=app.example.com MPA_DOMAIN=www.example.com API_URL=http://127.0.0.1:48412 \

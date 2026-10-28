@@ -155,6 +155,8 @@ steps:
       - deno --version
       - deno install --frozen
       - deno task mpa:build
+      # The storefront's browser tests on the sample shop (e2e/shop/run.sh), on the same build.
+      - deno task e2e:shop
       - deno task lighthouse
     depends_on: [e2e-mpa]
 

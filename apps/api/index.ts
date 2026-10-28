@@ -76,6 +76,10 @@ import { createCallRoute } from "./routes/call.ts"
 import { createHealthRoute } from "./routes/health.ts"
 import { isCacheConnected, kv } from "./services/cache.ts"
 import { files } from "./services/files.ts"
+import { s3ServerFiles } from "@server/files/files.ts"
+import { readCatalogSetup } from "@server/catalog/setup.ts"
+import { createUmamiLinks, readTrackingSetup } from "@server/catalog/tracking.ts"
+import { createPublicCatalogReads, createPublicCatalogRoute } from "./routes/catalog.ts"
 import { createRedisRateLimitStore } from "@spy4x/server/kv"
 import { enqueuePasswordResetMail } from "@server/jobs/password-reset-mail.ts"
 import { enqueueSignInLinkMail } from "@server/jobs/sign-in-link-mail.ts"
@@ -259,6 +263,13 @@ app.route(
 const subscribersSetup = readSubscribersSetup(Deno.env, config.isDev ? "dev" : "prod")
 const subscribersWarning = subscribersOffWarning(subscribersSetup)
 if (subscribersWarning) log(subscribersWarning)
+// The catalog (#466): off unless CATALOG=true. Its photos pass through the API to the file store.
+// Its tracking links (#483) need the website's address, and count visits in Umami when it is set.
+const siteUrl = readSiteUrl(Deno.env, config.isDev ? "dev" : "prod")
+const catalogSwitch = readCatalogSetup(Deno.env)
+const trackingSetup = catalogSwitch.on ? readTrackingSetup(Deno.env, siteUrl) : null
+const catalogSetup = { ...catalogSwitch, tracking: trackingSetup }
+const serverFiles = s3ServerFiles(config.files)
 // The operator area (#146) and its modules (#424). The gate answers 404 to anyone below operator.
 app.route(
   "/admin",
@@ -269,7 +280,7 @@ app.route(
       db,
       sql,
       subscribers: subscribersSetup,
-      siteUrl: readSiteUrl(Deno.env, config.isDev ? "dev" : "prod"),
+      siteUrl,
       limit: rateLimits.normal,
       resetByAddress: rateLimits.resetByAddress,
       emit,
@@ -280,6 +291,8 @@ app.route(
       readFile: files.read,
       build: config.build,
       billing: billingSetup,
+      catalog: catalogSetup,
+      files: serverFiles,
     }).concat(
       createAdminOwnPreferencesRoute({
         limit: rateLimits.normal,
@@ -467,6 +480,23 @@ app.route(
 app.route("/blog", createPublicBlogRoute(createPublicBlogReads(sql)))
 // The public website names the contact links in its footer and its structured data.
 app.route("/contact-links", createPublicContactLinksRoute(createPublicContactLinksRead(sql)))
+// The public website shows the catalog's published items, while the catalog is on.
+if (catalogSetup.on) {
+  app.route(
+    "/catalog",
+    createPublicCatalogRoute(
+      createPublicCatalogReads(
+        sql,
+        catalogSetup.settings,
+        serverFiles.read,
+        trackingSetup && {
+          setup: trackingSetup,
+          umami: trackingSetup.umami && createUmamiLinks(trackingSetup.umami),
+        },
+      ),
+    ),
+  )
+}
 // Visitors subscribe to mail. The worker signs and sends every mail; this checks the links.
 app.route(
   "/subscribers",

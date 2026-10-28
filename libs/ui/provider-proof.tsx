@@ -9,6 +9,7 @@ import {
 } from "@domain/identity"
 import { providerStartPath } from "./auth-screen.tsx"
 import { SCREEN_PATHS, withNext } from "./progressive.tsx"
+import { useAppText } from "./i18n.ts"
 
 /**
  * What an account with no password confirms a step with, where the others type their password:
@@ -61,21 +62,22 @@ export function providerProofOf(
 export function ProviderProofNotice(
   { proof, next }: { proof: ProviderProof; next: string },
 ): JSX.Element {
+  const t = useAppText()
   const names = proof.providers.map((provider) => OAUTH_PROVIDER_NAMES[provider])
-  if (proof.passkeys) names.push("a passkey")
-  if (proof.emailLink) names.push("a sign-in link")
+  if (proof.passkeys) names.push(t.t(`ProviderProof.passkey`))
+  if (proof.emailLink) names.push(t.t(`ProviderProof.link`))
+  const methods = new Intl.ListFormat(t.language, { type: `disjunction` }).format(names)
   if (proof.fresh) {
     return (
       <p class="text-sm text-muted" data-e2e="provider-proof-fresh">
-        You signed in with {names.join(" or ")} a moment ago, so no password is asked.
+        {t.t(`ProviderProof.fresh`, { methods })}
       </p>
     )
   }
   return (
     <Stack gap="sm" data-e2e="provider-proof-needed">
       <p class="text-sm">
-        This account has no password to confirm this with. Sign in with {names.join(" or ")}{" "}
-        again, then come back here within {PROVIDER_PROOF_MINUTES} minutes.
+        {t.t(`ProviderProof.needed`, { methods, count: PROVIDER_PROOF_MINUTES })}
       </p>
       <Cluster>
         {proof.passkeys && proof.onPasskey && (
@@ -83,11 +85,11 @@ export function ProviderProofNotice(
             type="button"
             variant="secondary"
             busy={proof.passkeyPending}
-            busyLabel="Waiting for your device…"
+            busyLabel={t.t(`AuthScreen.waitingDevice`)}
             onClick={proof.onPasskey}
             data-e2e="provider-proof-passkey"
           >
-            Sign in with a passkey again
+            {t.t(`ProviderProof.passkeyAgain`)}
           </Button>
         )}
         {proof.providers.map((provider) => (
@@ -97,7 +99,7 @@ export function ProviderProofNotice(
             variant="secondary"
             data-e2e={`provider-proof-${provider}`}
           >
-            Sign in with {OAUTH_PROVIDER_NAMES[provider]} again
+            {t.t(`ProviderProof.providerAgain`, { provider: OAUTH_PROVIDER_NAMES[provider] })}
           </Button>
         ))}
         {proof.emailLink && (
@@ -107,7 +109,7 @@ export function ProviderProofNotice(
             variant="secondary"
             data-e2e="provider-proof-link"
           >
-            Email me a sign-in link
+            {t.t(`AuthScreen.emailSignInLink`)}
           </Button>
         )}
       </Cluster>

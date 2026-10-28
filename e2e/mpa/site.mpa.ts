@@ -5,9 +5,8 @@ test.use({ javaScriptEnabled: false })
 
 test("a visitor without JavaScript reads the home page and reaches both legal pages from its footer", async ({ page }) => {
   await page.goto("/")
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Vi shop đang chuẩn bị mở cửa")
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Mặc để chuyển động.")
   await expect(page.locator("html")).toHaveAttribute("lang", "vi")
-  await expect(page.locator("[data-e2e=home-english]")).toHaveAttribute("lang", "en")
 
   await page.getByRole("link", { name: "Quyền riêng tư" }).click()
   await expect(page).toHaveURL("/privacy")
@@ -29,7 +28,7 @@ test("robots.txt points crawlers at a sitemap that lists the privacy page", asyn
 
 test("every page fits a 375 px phone without scrolling sideways", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 })
-  for (const path of ["/", "/privacy", "/terms"]) {
+  for (const path of ["/", "/en/", "/hoi-dap", "/danh-sach", "/privacy", "/terms"]) {
     await page.goto(path)
     const pageWidth = await page.evaluate(() => document.documentElement.scrollWidth)
     expect(pageWidth, path).toBeLessThanOrEqual(375)

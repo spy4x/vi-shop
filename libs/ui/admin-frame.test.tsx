@@ -19,6 +19,10 @@ import {
 } from "@spy4x/preact-icons"
 import { AdminFrame, adminPageTitle, AdminShell, ComingSoonPanel } from "./admin-frame.tsx"
 
+/** Stand-ins for a page's content: data to the frame, so never translated. */
+const PAGE = `page`
+const SOON = { title: `Reports is coming soon`, description: `Soon.` }
+
 const window = new Window({ url: "http://admin.localhost/" })
 const own = {
   document: globalThis.document,
@@ -118,7 +122,7 @@ describe("AdminShell", () => {
   it("has no header, brand or switcher: the rail starts with Dashboard and the page sits in the wide column", async () => {
     await mount(
       <AdminShell navItems={modules} currentPath="/" operator={operator} onSignOut={() => {}}>
-        <p id="page">page</p>
+        <p id="page">{PAGE}</p>
       </AdminShell>,
     )
     expect(document.querySelector("header")).toBe(null)
@@ -137,7 +141,7 @@ describe("AdminShell", () => {
   it("marks the account cell with a neutral Admin badge and names the operator's button with it", async () => {
     await mount(
       <AdminShell navItems={modules} currentPath="/" operator={operator} onSignOut={() => {}}>
-        page
+        {PAGE}
       </AdminShell>,
     )
     const trigger = find(ACCOUNT)
@@ -157,7 +161,7 @@ describe("AdminShell", () => {
         operator={operator}
         onSignOut={() => {}}
       >
-        page
+        {PAGE}
       </AdminShell>,
     )
     const nav = find("[data-e2e=rail-shell-rail]")
@@ -170,7 +174,7 @@ describe("AdminShell", () => {
   it("keeps the first four modules as phone tabs and ends the bar with Admin, whose sheet holds the rest", async () => {
     await mount(
       <AdminShell navItems={modules} currentPath="/" operator={operator} onSignOut={() => {}}>
-        page
+        {PAGE}
       </AdminShell>,
     )
     expect(entryLabels("[data-e2e=rail-shell-tabbar]")).toEqual([
@@ -201,7 +205,7 @@ describe("AdminShell", () => {
         operator={{ name: address, email: address }}
         onSignOut={() => {}}
       >
-        page
+        {PAGE}
       </AdminShell>,
     )
     const times = (text: string) => text.split(address).length - 1
@@ -221,7 +225,7 @@ describe("AdminShell", () => {
         theme={theme}
         onSignOut={() => void signedOut.push(true)}
       >
-        page
+        {PAGE}
       </AdminShell>,
     )
     const menu = find(ACCOUNT).parentElement!.querySelector("[role=menu]")!
@@ -251,6 +255,41 @@ describe("AdminShell", () => {
     expect(theme.chosen).toEqual(["dark"])
     expect(signedOut).toEqual([true, true])
   })
+
+  it("offers the operator Language with the one in use, in the menu and the sheet, opening the language dialog", async () => {
+    const chosen: (string | null)[] = []
+    await mount(
+      <AdminShell
+        navItems={modules}
+        currentPath="/"
+        operator={operator}
+        onSignOut={() => {}}
+        language={{
+          languages: ["en", "ru", "de", "ar"],
+          current: null,
+          automatic: "ru",
+          onSelect: (tag) => void chosen.push(tag),
+        }}
+      >
+        {PAGE}
+      </AdminShell>,
+    )
+    // The rail menu's entry and the phone sheet's, each with the language in its own name.
+    const entries = document.querySelectorAll<HTMLElement>(
+      "[data-e2e=account-menu-language], [data-e2e=app-shell-sheet-language]",
+    )
+    expect(entries).toHaveLength(2)
+    for (const entry of entries) {
+      expect(entry.querySelector("[lang=ru]")?.textContent).toBe("Русский")
+    }
+
+    await act(() => entries[1].click())
+    const dialog = find("[data-e2e=language-dialog]")
+    const german = [...dialog.querySelectorAll<HTMLElement>("[role=radio]")]
+      .find((row) => row.textContent?.includes("Deutsch"))!
+    await act(() => german.click())
+    expect(chosen).toEqual(["de"])
+  })
 })
 
 describe("adminPageTitle", () => {
@@ -266,7 +305,7 @@ describe("AdminFrame", () => {
   it("shows the product's name with the same neutral Admin badge above the sign-in", async () => {
     await mount(
       <AdminFrame operatorName={null} canSignOut={false} onSignOut={() => {}} wide={false}>
-        page
+        {PAGE}
       </AdminFrame>,
     )
     const brand = find("header [data-e2e=admin-mark]").closest("a")!
@@ -278,7 +317,7 @@ describe("AdminFrame", () => {
 
 describe("ComingSoonPanel", () => {
   it("shows its message without a dashed box", async () => {
-    await mount(<ComingSoonPanel title="Reports is coming soon" description="Soon." />)
+    await mount(<ComingSoonPanel title={SOON.title} description={SOON.description} />)
     const panel = find(`[data-e2e="admin-coming-soon"]`)
 
     expect(panel.textContent).toContain("Reports is coming soon")

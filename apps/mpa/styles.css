@@ -13,6 +13,22 @@
 /* Seed's fonts and purple, shared with the product and the admin app. */
 @import "../../libs/ui/brand.css";
 
+/* Vi shop's hue on the website: chartreuse at 105° (preact-components docs/design-language.md,
+   "Hues assigned"), in place of Seed's purple. It fills the order button, the selected size and
+   colour, the brand mark and the favicon. */
+:root {
+  --color-primary: oklch(0.5 0.105 105);
+  --color-accent: oklch(0.5 0.105 105);
+}
+
+/* Room under the controls above an order bar stuck to the bottom of a phone, before or without
+   scripts; once scripts run, the bar sets it to its own height (preact-ui README, "Storefront"). */
+@media (width < 64rem) {
+  html:has([data-e2e="order-bar"]) {
+    scroll-padding-bottom: 14rem;
+  }
+}
+
 /* A faint 32 px line grid behind the hero, fading out downwards. Decoration only. */
 .site-grid {
   background-image:

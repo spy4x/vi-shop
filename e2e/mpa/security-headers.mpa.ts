@@ -6,14 +6,22 @@ const SPA = new URL(Deno.env.get("SPA_BASE_URL")!).origin
 /** The stand-in Umami's origin (`e2e/mpa/run.sh`): analytics is on in these tests. */
 const UMAMI = Deno.env.get("MPA_UMAMI_ORIGIN")!
 
-function expectSecurityHeaders(response: APIResponse) {
+/**
+ * Checks the headers of `response`. A page Fresh rendered also allows that render's nonce in
+ * `script-src`, for the inline scripts Fresh writes; any other answer has none.
+ */
+function expectSecurityHeaders(response: APIResponse, rendered: boolean) {
   const headers = response.headers()
+  const nonces = headers["content-security-policy"].match(/ 'nonce-[0-9a-f]+'/g) ?? []
+  expect(nonces).toHaveLength(rendered ? 1 : 0)
   // The website has its own host here, so its forms may also redirect to the app's.
   expect(headers["content-security-policy"]).toBe(
-    `default-src 'self'; script-src 'self' ${UMAMI}; style-src 'self'; img-src 'self' data: https:; ` +
+    `default-src 'self'; script-src 'self' ${UMAMI}${
+      nonces.join("")
+    }; style-src 'self'; img-src 'self' data: https:; ` +
       `connect-src 'self' ${UMAMI}; object-src 'none'; base-uri 'self'; ` +
-      `form-action 'self' ${SPA}; ` +
-      "frame-ancestors 'none'",
+      `form-action 'self' ${SPA} https://t.me; ` +
+      "frame-ancestors 'none'; style-src-attr 'unsafe-inline'",
   )
   expect(headers["x-content-type-options"]).toBe("nosniff")
   expect(headers["referrer-policy"]).toBe("no-referrer")
@@ -24,17 +32,17 @@ function expectSecurityHeaders(response: APIResponse) {
 test("the website sends the security headers with a page, its stylesheet and an unknown address", async ({ request }) => {
   const page = await request.get("/")
   expect(page.status()).toBe(200)
-  expectSecurityHeaders(page)
+  expectSecurityHeaders(page, true)
 
   const stylesheet = (await page.text()).match(/<link rel="stylesheet" href="([^"]+)"/)![1]
   const css = await request.get(stylesheet.replaceAll("&amp;", "&"))
   expect(css.status()).toBe(200)
   expect(css.headers()["content-type"]).toContain("text/css")
-  expectSecurityHeaders(css)
+  expectSecurityHeaders(css, false)
 
   const unknown = await request.get("/no-such-page")
   expect(unknown.status()).toBe(404)
-  expectSecurityHeaders(unknown)
+  expectSecurityHeaders(unknown, true)
   // The error page keeps the site's frame, so the visitor can go on from it.
   expect(await unknown.text()).toContain("Không tìm thấy trang")
   expect(await unknown.text()).toContain(`data-e2e="site-brand"`)
@@ -48,7 +56,7 @@ test("a visitor walks the website without a refusal under the content security p
   await page.goto("/")
   expect((await stylesheet).status()).toBe(200)
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "Vi shop đang chuẩn bị mở cửa",
+    "Mặc để chuyển động.",
   )
   expect(await page.evaluate(() => document.styleSheets.length)).toBeGreaterThan(0)
 

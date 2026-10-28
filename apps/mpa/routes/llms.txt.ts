@@ -1,26 +1,67 @@
 import { llmsTxt } from "@spy4x/platform/universal/seo"
+import type { PublicCatalogItem } from "@domain/catalog"
 import { REPOSITORY_URL, SITE_NAME } from "../brand.ts"
-import { SITE_PAGES } from "../pages.ts"
+import { text } from "../shop/catalog.ts"
+import { isSoldOut } from "../shop/parts.ts"
+import { categoryPath, itemPath, type Lang, PATHS } from "../shop/lang.ts"
+import { formatPrice, WORDS } from "../shop/words.ts"
 import { define } from "../utils.ts"
-import { HOME_HEAD } from "./index.tsx"
+
+/** One item as an assistant reads it: its price, the sizes left and the colours. */
+function itemLine(item: PublicCatalogItem, lang: Lang): string {
+  const words = WORDS[lang]
+  const sizes = item.sizes.filter((size) => !isSoldOut(item, size, null)).map((s) => s.label)
+  const colours = item.colours.map((colour) => text(colour.name, lang))
+  return [
+    formatPrice(item.price, lang),
+    sizes.length > 0 ? words.factsSizes(sizes.join(`, `)).slice(0, -1) : ``,
+    colours.length > 0 ? words.factsColours(colours.join(`, `)).slice(0, -1) : ``,
+    item.stock === `sold-out` ? words.soldOut : ``,
+  ].filter(Boolean).join(`; `)
+}
 
 /**
- * The website for AI assistants (llmstxt.org): what the shop is, then every public page with its
- * description, on this website's own origin, and where the website's code lives.
+ * The shop for AI assistants (llmstxt.org): what it sells and how ordering works, then every
+ * published item with its price, sizes and colours, in English and in Vietnamese, the categories,
+ * the FAQ, and where the website's code lives.
  */
 export const handler = define.handlers({
   GET(ctx) {
+    const origin = ctx.state.webAppOrigin
+    const { categories, items } = ctx.state.catalog ?? { categories: [], items: [] }
+    const section = (lang: Lang, title: string) => ({
+      title,
+      links: items.map((item) => ({
+        title: text(item.name, lang),
+        url: `${origin}${itemPath(lang, item.categorySlug, item.slug)}`,
+        description: itemLine(item, lang),
+      })),
+    })
     const body = llmsTxt({
       title: SITE_NAME,
-      summary: HOME_HEAD.description,
+      summary: `${WORDS.en.homeDescription} ${WORDS.en.factsOrder}`,
       sections: [
+        ...(items.length > 0
+          ? [section(`en`, `Items (English)`), section(`vi`, `Sản phẩm (Tiếng Việt)`)]
+          : []),
         {
           title: `Pages`,
-          links: SITE_PAGES.map(({ path, title, description }) => ({
-            title,
-            url: `${ctx.state.webAppOrigin}${path}`,
-            description,
-          })),
+          links: [
+            ...categories.map((category) => ({
+              title: text(category.name, `en`),
+              url: `${origin}${categoryPath(`en`, category.slug)}`,
+            })),
+            {
+              title: WORDS.en.faqTitle,
+              url: `${origin}${PATHS.faq.en}`,
+              description: WORDS.en.faqDescription,
+            },
+            {
+              title: WORDS.vi.faqTitle,
+              url: `${origin}${PATHS.faq.vi}`,
+              description: WORDS.vi.faqDescription,
+            },
+          ],
         },
         {
           title: `Source code`,

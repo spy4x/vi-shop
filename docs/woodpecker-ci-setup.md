@@ -31,7 +31,8 @@ check ──┬── build ────────┐
   them (docs/backups.md).
 - `e2e-mpa` and `e2e-spa` run the website's browser tests and the SPA behind nginx
   (`e2e/mpa/run.sh`, `e2e/spa/run.sh`).
-- `lighthouse` runs `deno task lighthouse` (`apps/mpa/lighthouse/run.sh`): the website's pages,
+- `lighthouse` first runs the storefront's browser tests on the sample shop (`deno task e2e:shop`,
+  `e2e/shop/run.sh`), then `deno task lighthouse` (`apps/mpa/lighthouse/run.sh`): the website's pages,
   built and served behind nginx with gzip, must score at least 95 for performance and 100 for
   accessibility, best practices and SEO in Lighthouse mobile. The pages are listed in
   `apps/mpa/lighthouse/lighthouserc.json`.

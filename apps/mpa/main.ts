@@ -2,6 +2,7 @@ import { App } from "fresh"
 import { blogLinkMiddleware } from "./blog.ts"
 import { readMpaConfig } from "./config.ts"
 import { contactLinksMiddleware } from "./contact-links.ts"
+import { shopMiddleware } from "./shop/middleware.ts"
 import {
   newsletterPageMiddleware,
   securityHeadersMiddleware,
@@ -18,4 +19,5 @@ app.use(staticFilesMiddleware())
 app.use(await newsletterPageMiddleware(config))
 app.use(await blogLinkMiddleware(config))
 app.use(await contactLinksMiddleware(config))
+app.use(await shopMiddleware(config))
 app.fsRoutes()

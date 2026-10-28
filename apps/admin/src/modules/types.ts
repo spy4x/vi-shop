@@ -40,6 +40,7 @@ export interface AdminRoute {
 /** A tab a module adds to the person page (`/users/:id`), after the page's own tabs. */
 export interface AdminPersonTab {
   id: string
+  /** The tab's name, as a catalog key. */
   label: string
   /**
    * The tab's content. Its elements mount only while the tab is open, so a component it returns
@@ -55,7 +56,15 @@ export interface AdminPersonTab {
 export interface AdminModule {
   /** The same id as the API module. */
   id: string
-  /** The sidebar entry; its `href` is the module's first page. */
+  /**
+   * A module a product turns on with a setting, such as the catalog (`CATALOG=true`). The app shows
+   * it only once `GET /api/admin/modules` lists it, and it adds no person tabs.
+   */
+  optional?: true
+  /**
+   * The rail entry; its `href` is the module's first page. `name` is a catalog key, translated
+   * where the rail and shortcuts show it.
+   */
   nav: { name: string; href: string; Icon: ComponentType<IconProps> }
   routes: readonly AdminRoute[]
   personTabs?: readonly AdminPersonTab[]

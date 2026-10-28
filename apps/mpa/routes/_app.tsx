@@ -1,18 +1,17 @@
 import type { JSX } from "preact"
 import { REPOSITORY_URL, SITE_NAME } from "../brand.ts"
-import { SITE_LANG } from "../site.tsx"
 import type { State } from "../utils.ts"
 import { define } from "../utils.ts"
 
 /**
- * The document around every page. `data-theme="ink"` picks the near-black dark palette, which
+ * The document around every page, in the page's language (`State.lang`). `data-theme="ink"` picks the near-black dark palette, which
  * applies only once `/theme.js` adds `dark` for a device that asks for it; without JavaScript the
  * page stays light. The script is a file, not inline, because the content security policy allows
  * scripts from this origin only.
  */
 export default define.page(function App({ Component, state, url }) {
   return (
-    <html lang={SITE_LANG} data-theme="ink" class="h-full">
+    <html lang={state.lang ?? `vi`} data-theme="ink" class="h-full">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
