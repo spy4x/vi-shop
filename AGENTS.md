@@ -29,10 +29,13 @@ the shop: its brand, copy, categories, and the order-message wording.
 
 The website (`apps/mpa`), the admin panel (`apps/admin`), the API and the worker. The SPA, billing,
 guest accounts and the public demo stay in the code, so syncs from Seed apply cleanly, but are off
-in the env file: `BILLING_PROVIDER=off`, `GUEST_MODE=false`, `DEMO_MODE=false`. Seed has no switch
-for the SPA, so its container still runs, and in production `MPA_REDIRECT_RULE` sends every request
-to its host (`DOMAIN`, `/api` included) to the website (`infra/envs/.env.example` says why the rule
-is written that long).
+in the env file: `BILLING_PROVIDER=off`, `GUEST_MODE=false`, `DEMO_MODE=false`, `SPA=false`. With
+the SPA off, Compose runs no SPA container and the API refuses account routes outside the admin
+host. In production `MPA_REDIRECT_RULE` also sends every request to the SPA's host (`DOMAIN`, `/api`
+included) to the website (`infra/envs/.env.example` says why the rule is written that long).
+
+The first operator is made on the server with `deno task operator:create <address>` (Seed's
+`docs/deploy.md`).
 
 ## Languages
 

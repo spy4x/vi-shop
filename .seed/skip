@@ -46,3 +46,4 @@ e2e/mpa/site.mpa.ts
 e2e/mpa/subscribers.mpa.ts
 LICENSE
 README.md
+apps/mpa/contact-links.test.ts
