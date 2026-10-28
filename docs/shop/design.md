@@ -12,7 +12,7 @@ clothes on a person, and want three answers: what does it look like on a body, i
 how do I get it. The design answers those three, in that order, and drops the rest.
 
 1. **Looks, not thumbnails.** Every photo is a tall 3:4 picture of the clothes on a person, shown
-   large: one per screen width on a phone, a staggered contact sheet on a desktop. Words sit on
+   large: one per screen width on a phone, aligned columns on a desktop. Words sit on
    and beside the photos in big, tight type, as in a fashion magazine.
 2. **Size first.** A "Your size" chip row sits at the top of every list. Pick `M` once and the
    whole site answers "is there an M": items without one leave the list, and sold-out sizes are
@@ -23,7 +23,7 @@ how do I get it. The design answers those three, in that order, and drops the re
    payment step.
 4. **Movement that carries meaning.** A photo grows from its tile into the item page with a
    cross-document view transition (modern browsers only, as the direction says; no script). The
-   photo strip snaps. Nothing else moves.
+   photo strip snaps, one centred photo per swipe. Nothing else moves.
 5. **Worth the price.** The clothes cost more than most, so the item page shows why before the
    price can put anyone off: a close-up of the fabric or a seam among the photos, the material and
    how it is made near the top, no discount banners and no "sale" red. Calm, confident words.
@@ -82,7 +82,7 @@ The newest looks, full size, with the brand's headline over the first one.
 │ │ chuyển động.         │ │            │  └──────────┘  Áo khoác  390.000 ₫  └──────────┘      │
 │ └──────────────────────┘ │            │  Quần short    590.000 ₫ S M ~L~    Bộ đồ xanh        │
 │ Áo khoác zip   590.000 ₫│            │  250.000 ₫     S M L               390.000 ₫          │
-│ S [M] ~L~   ● ●          │            │  staggered columns: 3 at 1440, 2 at 768, 1 at 390     │
+│ S [M] ~L~   ● ●          │            │  aligned columns: 3 at 1440, 2 at 768, 1 at 390       │
 │ ┌──────────────────────┐ │            └──────────────────────────────────────────────────────────┘
 │ │      next look       │ │
 ```
@@ -138,8 +138,10 @@ In the wireframes, `[ ]` is the one accent-filled button and `( )` a secondary o
   size calculator: height in cm and weight in kg, two number fields in a GET form. The server
   answers from this item's size ranges and selects that size. If height and weight point at
   different sizes, it names both and suggests the larger: "Size của bạn ở giữa S và M. Chọn M cho
-  thoải mái." The numbers are kept for the visit. An item whose sizes have no ranges shows no
-  calculator.
+  thoải mái." The numbers are kept for the visit. With JavaScript the answer and the size it
+  picks appear in place, without a reload. An item whose sizes have no ranges shows no calculator.
+- A photo opens full size in a lightbox: the arrow keys move between the item's photos, Escape
+  closes it, and focus returns to the photo.
 - The order bar carries the delivery line from point 6 above the buttons.
 - With no size picked, the buttons stay enabled and the message says "size: chưa chọn" (size: not
   chosen), so a shopper can still ask.
