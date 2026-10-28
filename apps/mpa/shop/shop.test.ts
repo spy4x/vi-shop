@@ -146,4 +146,21 @@ describe(`the catalog snapshot`, () => {
     expect(api.state.calls).toBeGreaterThan(calls)
     expect(source.current().items).toHaveLength(SAMPLE_ITEMS.length)
   })
+
+  it(`asks again on the next request after a failed call, not a minute later`, async () => {
+    const api = fakeApi()
+    const source = createCatalogSource({
+      apiUrl: `http://api:8000`,
+      fetch: api.fetch,
+      now: () => 0,
+    })
+    api.state.down = true
+    await source.refresh()
+    api.state.down = false
+    const calls = api.state.calls
+
+    source.current()
+
+    expect(api.state.calls).toBe(calls + 1)
+  })
 })

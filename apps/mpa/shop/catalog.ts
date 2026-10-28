@@ -97,10 +97,10 @@ export function createCatalogSource(
         }
       }
       snapshot = { categories: list.categories, items }
+      // Only a good answer starts the wait: after a failure the next request asks again.
+      askedAt = now()
     } catch {
       // The last snapshot stands.
-    } finally {
-      askedAt = now()
     }
   }
 
