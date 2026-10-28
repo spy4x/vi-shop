@@ -23,6 +23,13 @@ how do I get it. The design answers those three, in that order, and drops the re
 4. **Movement that carries meaning.** A photo grows from its tile into the item page with a
    cross-document view transition (modern browsers only, as the direction says; no script). The
    photo strip snaps. Nothing else moves.
+5. **Worth the price.** The clothes cost more than most, so the item page shows why before the
+   price can put anyone off: a close-up of the fabric or a seam among the photos, the material and
+   how it is made near the top, no discount banners and no "sale" red. Calm, confident words.
+6. **Delivery today, said where it decides.** "Giao trong ngày ở Đà Nẵng nếu đặt trước 16:00"
+   (same-day delivery in Da Nang if you order before 16:00) sits in the order bar, under the home
+   headline and in the FAQ. After 16:00 Vietnam time the server renders "Đặt bây giờ, giao ngày
+   mai ở Đà Nẵng" (order now, delivered tomorrow in Da Nang).
 
 ## Visual language
 
@@ -80,6 +87,10 @@ The newest looks, full size, with the brand's headline over the first one.
 ```
 
 - The size row filters the list on the server (`?size=M`, kept in a cookie for the visit).
+- After the size row, "Chưa biết size? Tính size" (not sure of your size? find it) opens the size
+  calculator: height in cm and weight in kg, two number fields in a GET form. The server answers
+  with the size to pick and selects it in the row. If the two numbers point at different sizes,
+  it says so and suggests the larger one ("Bạn nằm giữa S và M. Chọn M nếu thích mặc rộng").
 - Under each look: the name, the price, the sizes (the chosen one marked, sold-out ones struck
   through) and the colour dots. The whole look is one link.
 - Empty state, when no item fits the chosen size: "Chưa có món nào size M. Xem tất cả size?" with
@@ -126,6 +137,9 @@ In the wireframes, `[ ]` is the one accent-filled button and `( )` a secondary o
   `https://zalo.me/<phone>`; with JavaScript it copies the message first and says "Đã chép tin
   nhắn. Dán vào Zalo." (Message copied. Paste it into Zalo.); without JavaScript the message is
   shown selectable above the link.
+- Under the size chips, the same size calculator as on the home page, filled with the visit's
+  numbers if the shopper used it already. Its answer uses this item's size ranges.
+- The order bar carries the delivery line from point 6 above the buttons.
 - With no size picked, the buttons stay enabled and the message says "size: chưa chọn" (size: not
   chosen), so a shopper can still ask.
 - Sold out: the price is struck, the bar says "Hết hàng" (sold out) and offers "Hỏi khi có lại"
@@ -152,6 +166,9 @@ Chào shop, mình muốn đặt:
 • Áo khoác zip, màu Nâu, size M, 590.000 ₫
 https://vi-shop.antonshubin.com/ao-khoac/ao-khoac-zip-nau
 ```
+
+The delivery line and the size calculator, in English: "Same-day delivery in Da Nang if you order
+before 16:00", "Not sure of your size? Find it", "Height (cm)", "Weight (kg)", "Your size: M".
 
 ## Keyboard and accessibility
 

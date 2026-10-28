@@ -5,7 +5,9 @@ Telegram/Zalo to make an order" links, admin panel to edit items, links. Seed-qu
 stuff back to Seed and the libs". Later the same day: Vietnamese (default) and English, prices in
 VND, the name "Vi shop" for now, deployed to `vi-shop.antonshubin.com`, a public repository as a
 case for Seed, SEO and AEO from the beginning, and a bold, modern design that rethinks how clothes
-catalogs look and work.
+catalogs look and work. Later still, the shop's three strengths: high quality at a high price,
+so not everyone buys; same-day delivery in Da Nang for orders placed before 16:00; and a size
+calculator that turns height and weight into the size to pick.
 
 ## Problem
 
@@ -27,6 +29,17 @@ A catalog website that shows the clothes at their best, answers the size and pri
 before they are asked, and turns a choice into a ready order message in the seller's chat. The
 seller runs it from the admin panel without a developer.
 
+## What sets the shop apart
+
+- **Quality first, priced to match.** The clothes cost more than a market stall's, and the site
+  says why: close-up photos of fabric and seams, the material and how it is made, and no discount
+  banners. A shopper who wants the cheapest option is not the audience.
+- **Same-day delivery in Da Nang** for orders placed before 16:00 (Vietnam time). The site says it
+  next to the order buttons, on the home page and in the FAQ, and the line changes to "tomorrow"
+  after 16:00.
+- **A size calculator.** The shopper enters height and weight and is told which size to pick, so
+  "which size am I?" is answered before the chat.
+
 ## Non-goals
 
 - No online payment, cart checkout, delivery tracking or customer accounts. The chat is the
@@ -42,19 +55,21 @@ seller runs it from the admin panel without a developer.
    size is kept for the visit.
 3. Open an item: every photo, the price, the colours and sizes that are available, the material,
    fit and care, and a size table.
-4. Pick a colour and size and press **Order on Telegram** or **Order on Zalo**. Telegram opens a
+4. Enter their height and weight in the size calculator and see the size to pick, preselected in
+   the size choice. The answer is kept for the visit.
+5. Pick a colour and size and press **Order on Telegram** or **Order on Zalo**. Telegram opens a
    chat with the shop and a ready message naming the item, colour, size, price and link. Zalo
    cannot pre-fill a message, so the page copies the same text and says "Paste it into the chat".
-5. Collect several items in an **order list** and send them as one message. The list lives in a
+6. Collect several items in an **order list** and send them as one message. The list lives in a
    cookie in the shopper's browser, works without JavaScript, and needs no account.
-6. Read the FAQ: how ordering, payment, delivery, exchanges and sizing work.
-7. Switch between Vietnamese and English on any page, landing on the same page in the other
+7. Read the FAQ: how ordering, payment, delivery, exchanges and sizing work.
+8. Switch between Vietnamese and English on any page, landing on the same page in the other
    language.
 
 ## What the seller can do (admin panel)
 
-1. Add an item: name and description in both languages, price in VND, category, colours, sizes,
-   material, fit and care, and photos straight from a phone (JPEG, PNG and iPhone HEIC).
+1. Add an item: name and description in both languages, price in VND, category, colours, sizes
+   with the height and weight range each fits, material, fit and care, and photos straight from a phone (JPEG, PNG and iPhone HEIC).
 2. Order the photos, pick the cover, and mark which colour a photo shows.
 3. Mark the item, a colour or a single size as sold out; hide or publish the item.
 4. Manage categories, in both languages.
@@ -71,7 +86,7 @@ Every id is a UUID version 7. Text a shopper reads is stored in both languages.
 | Category     | slug, name (vi, en), position                                                                                                                                     |
 | Item         | slug, name (vi, en), description (vi, en), material, fit and care (vi, en), price in dong (integer), category, status (draft, published, hidden), published time |
 | Colour       | item, name (vi, en), swatch hex                                                                                                                                      |
-| Size         | item, label (`S`, `M`, `L`, `Free size`), position                                                                                                                   |
+| Size         | item, label (`S`, `M`, `L`, `Free size`), position, optional height range (cm) and weight range (kg) for the size calculator                                       |
 | Sold out     | item, colour, size: one row per combination that is sold out                                                                                                    |
 | Photo        | item, optional colour, position, alt text (vi, en), the processed image variants                                                                                  |
 | Contact link | kind (telegram, zalo, instagram, facebook, phone, e-mail), value, position                                                                                        |
