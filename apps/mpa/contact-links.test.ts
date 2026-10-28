@@ -2,7 +2,7 @@ import { expect } from "@std/expect"
 import { describe, it } from "@std/testing/bdd"
 import { App } from "fresh"
 import AppWrapper from "./routes/_app.tsx"
-import Home from "./routes/index.tsx"
+import Home, { handler as homeHandler } from "./routes/index.tsx"
 import { contactLinksMiddleware, readContactLinks } from "./contact-links.ts"
 import { pageMiddleware } from "./middleware.ts"
 import type { State } from "./utils.ts"
@@ -39,7 +39,8 @@ async function home(links: unknown) {
     .use(pageMiddleware(config, fetch, () => false))
     .use(await contactLinksMiddleware(config, fetch))
     .appWrapper(view(AppWrapper))
-    .route("/", { component: view(Home) })
+    // deno-lint-ignore no-explicit-any
+    .route("/", { component: view(Home), handler: homeHandler as any })
     .handler()
   const response = await handler(new Request(`${config.webAppOrigin}/`), info)
   return await response.text()
@@ -68,9 +69,9 @@ describe("contact links on the website", () => {
     ])
   })
 
-  it("names the organization with profiles in sameAs and numbers only as contact points", async () => {
+  it("names the store with profiles in sameAs and numbers only as contact points", async () => {
     const organization = jsonLdGraph(await home(LINKS))
-      .find((node) => node["@type"] === "Organization")
+      .find((node) => node["@type"] === "ClothingStore")
     expect(organization).toMatchObject({
       "@id": "https://www.example.com/#organization",
       sameAs: ["https://t.me/my_shop"],
@@ -79,10 +80,14 @@ describe("contact links on the website", () => {
     expect(JSON.stringify(organization?.sameAs)).not.toContain("zalo")
   })
 
-  it("draws no Contact column and no organization while there are no links", async () => {
+  it("draws no Contact column, and a store with no profiles or contact points, while there are no links", async () => {
     const html = await home([])
+    const store = jsonLdGraph(html).find((node) => node["@type"] === "ClothingStore")
     expect(html.slice(html.lastIndexOf("<footer"))).not.toContain(">Liên hệ<")
-    expect(jsonLdGraph(html).map((node) => node["@type"])).not.toContain("Organization")
+    expect(store).toBeDefined()
+    expect(store).not.toHaveProperty("sameAs")
+    expect(store).not.toHaveProperty("contactPoint")
+    expect(store).not.toHaveProperty("email")
   })
 })
 

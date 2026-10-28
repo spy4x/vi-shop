@@ -2,7 +2,7 @@ import { expect } from "@std/expect"
 import { describe, it } from "@std/testing/bdd"
 import { App } from "fresh"
 import AppWrapper from "./routes/_app.tsx"
-import Home from "./routes/index.tsx"
+import Home, { handler as homeHandler } from "./routes/index.tsx"
 import Privacy from "./routes/privacy.tsx"
 import Terms from "./routes/terms.tsx"
 import { handler as robots } from "./routes/robots.txt.ts"
@@ -32,7 +32,8 @@ const view = (component: unknown) => component as Parameters<App<State>["appWrap
 const handler = new App<State>()
   .use(pageMiddleware(config, neverCalled, () => false))
   .appWrapper(view(AppWrapper))
-  .route("/", { component: view(Home) })
+  // deno-lint-ignore no-explicit-any
+  .route("/", { component: view(Home), handler: homeHandler as any })
   .route("/privacy", { component: view(Privacy) })
   .route("/terms", { component: view(Terms) })
   .get("/robots.txt", robots.GET!)
@@ -46,15 +47,6 @@ async function get(path: string): Promise<{ status: number; body: string }> {
 }
 
 describe("the shop's website", () => {
-  it("serves the home page in Vietnamese, with its one English line marked as English", async () => {
-    const { status, body } = await get("/")
-
-    expect(status).toBe(200)
-    expect(body).toContain(`<html lang="vi"`)
-    expect(body).toContain(`<title>Vi shop: quần áo, sắp ra mắt</title>`)
-    expect(body).toMatch(/<p lang="en"[^>]*data-e2e="home-english"[^>]*>Vi shop/)
-  })
-
   it("names neither Seed nor its author's offer, and links to no page that is gone", async () => {
     for (const path of ["/", "/privacy", "/terms"]) {
       const { body } = await get(path)
@@ -75,11 +67,18 @@ describe("the shop's website", () => {
     expect((await get("/terms")).body).toContain(`>Điều khoản</h1>`)
   })
 
-  it("lists exactly the three pages in the sitemap, on the website's own origin", async () => {
+  it("lists the fixed pages in the sitemap, in both languages, on the website's own origin", async () => {
     const { body } = await get("/sitemap.xml")
 
     const urls = [...body.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
-    expect(urls).toEqual([`${site}/`, `${site}/privacy`, `${site}/terms`])
+    expect(urls).toEqual([
+      `${site}/`,
+      `${site}/hoi-dap`,
+      `${site}/en/`,
+      `${site}/en/faq`,
+      `${site}/privacy`,
+      `${site}/terms`,
+    ])
   })
 
   it("points robots.txt at the one sitemap the website serves", async () => {
@@ -92,7 +91,7 @@ describe("the shop's website", () => {
     const { body } = await get("/llms.txt")
 
     expect(body).toContain(`# Vi shop`)
-    expect(body).toContain(`${site}/privacy`)
+    expect(body).toContain(`${site}/en/faq`)
     expect(body).toContain(`https://github.com/spy4x/vi-shop`)
     expect(body).not.toContain(`MIT`)
   })

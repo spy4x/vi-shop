@@ -44,7 +44,7 @@ seller runs it from the admin panel without a developer.
 
 - No online payment, cart checkout, delivery tracking or customer accounts. The chat is the
   checkout; the seller confirms, takes payment and ships as they do now.
-- No stock counts. An item, and each of its sizes, is either available or sold out.
+- No stock counts. Each colour and size of an item is either available or sold out.
 - No reviews, no marketplace, no recommendations engine.
 - The SPA, billing, guest accounts and the public demo from Seed are not used.
 
@@ -72,7 +72,7 @@ seller runs it from the admin panel without a developer.
    with the height and weight range each fits, material, fit and care, and photos straight from
    a phone (JPEG, PNG and iPhone HEIC).
 2. Order the photos, pick the cover, and mark which colour a photo shows.
-3. Mark the item, a colour or a single size as sold out; hide or publish the item.
+3. Mark any colour and size of the item as sold out; hide or publish the item.
 4. Manage categories, in both languages.
 5. Set the shop's contact links: Telegram username, Zalo phone number, and any other channel
    (Instagram, Facebook, phone). The order buttons and the footer use them.
@@ -107,7 +107,7 @@ From the first deploy:
   them and `x-default` to Vietnamese. Slugs are Vietnamese without diacritics
   (`/ao-khoac/ao-khoac-zip-nau`), the same item and category slug under `/en/`. Fixed pages have their own English paths (`/en/list`, `/en/faq`).
 - **Structured data:** `ClothingStore` with social profiles as `sameAs` and the Zalo number as `telephone`; on each item `Product`
-  with `Offer` (`priceCurrency: VND`, availability from the sold-out flags), `color`, `size`,
+  with `Offer` (`priceCurrency: VND`, availability from the sold-out colour and size pairs), `color`, `size`,
   `material` and every image; `BreadcrumbList`; `ItemList` on category pages; `FAQPage` on the
   FAQ.
 - **Sitemap with images and both languages**, `robots.txt`, `llms.txt` listing every published

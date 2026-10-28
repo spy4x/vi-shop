@@ -16,7 +16,8 @@ how do I get it. The design answers those three, in that order, and drops the re
    and beside the photos in big, tight type, as in a fashion magazine.
 2. **Size first.** A "Your size" chip row sits at the top of every list. Pick `M` once and the
    whole site answers "is there an M": items without one leave the list, and sold-out sizes are
-   struck through everywhere. This replaces the question shoppers ask most in chats.
+   struck through everywhere. A size counts as sold out in a list when it is sold out in every
+   colour; on an item page, when it is sold out in the colour picked. This replaces the question shoppers ask most in chats.
 3. **The chat is the checkout.** The order bar shows the message the shopper is about to send, as
    a chat bubble, above the two messenger buttons. Nothing is hidden: no account, no form, no
    payment step.
