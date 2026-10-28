@@ -117,7 +117,7 @@ export function faqRoute(lang: Lang) {
           <h1 class="text-6xl font-extrabold leading-tight tracking-tighter text-balance">
             {words.faqTitle}
           </h1>
-          <FaqList items={questions} />
+          <FaqList items={questions} headingLevel={2} />
         </div>
       </ShopFrame>
     )
