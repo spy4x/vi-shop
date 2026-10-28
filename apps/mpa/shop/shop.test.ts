@@ -54,7 +54,9 @@ describe(`the order list cookie`, () => {
   })
 
   it(`drops parts that are not an entry, so a tampered cookie names no other value`, () => {
-    const value = `${writeList([entry])}~../etc.-.-~ao.not-a-uuid.-~x.-.-.-~${jacket.slug}.-.-`
+    const value = `${
+      writeList([entry])
+    }~../etc.-.-~ao.not-a-uuid.-~x.-.-.-~Ao_Khoac.-.-~${jacket.slug}.-.-`
 
     expect(readList(value)).toEqual([entry, { item: jacket.slug, colour: null, size: null }])
   })

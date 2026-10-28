@@ -270,6 +270,7 @@ describe(`an item page`, () => {
     const { body } = await get(`/ao-khoac/ao-khoac-zip-nau`, {}, { links: false })
 
     expect(body).toContain(`data-e2e="no-channel"`)
+    expect(body).toContain(`Shop đang cập nhật kênh đặt hàng. Quay lại sau nhé.`)
     expect(body).not.toContain(`data-e2e="order-bar"`)
   })
 })
