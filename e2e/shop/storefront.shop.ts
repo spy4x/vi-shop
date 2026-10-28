@@ -102,7 +102,7 @@ test(`a phone sees the order message in two lines at most, without the link`, as
   }
 })
 
-test(`a swipe on a phone moves the photos by exactly one, and centres it`, async ({ browser }) => {
+test(`a swipe on a phone stops with one photo centred, never between two`, async ({ browser }) => {
   const context = await browser.newContext({
     viewport: { width: 390, height: 844 },
     hasTouch: true,
@@ -111,25 +111,25 @@ test(`a swipe on a phone moves the photos by exactly one, and centres it`, async
     const page = await context.newPage()
     await page.goto(JACKET)
     const strip = page.locator(`[data-e2e="item-photos"]`)
-    const photos = strip.locator(`li`)
-    await expect(photos).toHaveCount(2)
-
-    // A long fling: snapping stops it on the next photo, not past it.
-    await strip.evaluate((element) => element.scrollBy({ left: 1000, behavior: `instant` }))
+    await expect(strip.locator(`li`)).toHaveCount(2)
+    const box = (await strip.boundingBox())!
 
     /** How far each photo's centre sits from the strip's centre, in whole pixels. */
     const offsets = () =>
       strip.evaluate((element) => {
-        const box = element.getBoundingClientRect()
-        const middle = box.left + box.width / 2
+        const frame = element.getBoundingClientRect()
+        const middle = frame.left + frame.width / 2
         return [...element.querySelectorAll(`li`)].map((photo) => {
           const own = photo.getBoundingClientRect()
           return Math.round(own.left + own.width / 2 - middle)
         })
       })
-    await expect.poll(offsets).toEqual([expect.any(Number), 0])
-    const [first] = await offsets()
-    expect(first).toBeLessThan(-300)
+    // Sideways scrolls, as a swipe sends them. Each alone would leave two photos partly in view.
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+    await page.mouse.wheel(120, 0)
+    await expect.poll(offsets).toEqual([0, 350])
+    await page.mouse.wheel(200, 0)
+    await expect.poll(offsets).toEqual([-350, 0])
   } finally {
     await context.close()
   }
