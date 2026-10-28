@@ -5,7 +5,7 @@ import { LookTile } from "@spy4x/preact-ui/look-tile"
 import { RadioChips } from "@spy4x/preact-ui/radio-chips"
 import { buttonClasses } from "@spy4x/preact-ui/button"
 import { colourKey, text } from "./catalog.ts"
-import { isSoldOut, lookTransitionName, photoVariants, sizeByLabel } from "./parts.ts"
+import { isSoldOut, photoVariants, sizeByLabel } from "./parts.ts"
 import { itemPath, type Lang } from "./lang.ts"
 import { formatPrice, WORDS } from "./words.ts"
 
@@ -126,7 +126,6 @@ export function LookList(
                   color: each.swatch,
                 }))}
                 soldOut={item.stock === `sold-out`}
-                viewTransitionName={lookTransitionName(item.slug)}
                 priority={index === 0}
                 labels={words.tile}
               />

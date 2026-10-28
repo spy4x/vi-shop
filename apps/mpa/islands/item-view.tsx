@@ -9,14 +9,7 @@ import { OrderBar } from "@spy4x/preact-ui/order-bar"
 import { RadioChips } from "@spy4x/preact-ui/radio-chips"
 import { SwatchChips } from "@spy4x/preact-ui/swatch-chips"
 import { type Lang, PATHS } from "../shop/lang.ts"
-import {
-  isSoldOut,
-  type ItemModel,
-  lookTransitionName,
-  orderLine,
-  photoVariants,
-  sizeByLabel,
-} from "../shop/parts.ts"
+import { isSoldOut, type ItemModel, orderLine, photoVariants, sizeByLabel } from "../shop/parts.ts"
 import { barActions, orderActions } from "../shop/order-actions.tsx"
 import { type OrderChannels, orderMessage } from "../shop/order.ts"
 import { formatPrice, WORDS } from "../shop/words.ts"
@@ -147,9 +140,6 @@ export default function ItemView(props: ItemViewProps): JSX.Element {
                         fetchpriority={index === 0 ? `high` : undefined}
                         decoding="async"
                         class="block aspect-3/4 w-full object-cover"
-                        style={index === 0
-                          ? { viewTransitionName: lookTransitionName(item.slug) }
-                          : undefined}
                       />
                     </picture>
                   </li>

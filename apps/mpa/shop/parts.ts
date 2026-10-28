@@ -56,11 +56,6 @@ export function photoVariants(
   }))
 }
 
-/** The `view-transition-name` that ties a tile's photo to its item page's first photo. */
-export function lookTransitionName(slug: string): string {
-  return `look-${slug}`
-}
-
 /** An item as the item page's island takes it: every text already in the page's language. */
 export interface ItemModel extends StockParts {
   slug: string

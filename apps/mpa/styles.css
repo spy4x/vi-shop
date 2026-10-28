@@ -21,14 +21,6 @@
   --color-accent: oklch(0.5 0.105 105);
 }
 
-/* A look's photo grows from its tile into the item page, in browsers that run cross-document view
-   transitions, for readers who did not ask for less motion; anyone else simply gets the page. */
-@media (prefers-reduced-motion: no-preference) {
-  @view-transition {
-    navigation: auto;
-  }
-}
-
 /* Room under the controls above an order bar stuck to the bottom of a phone, before or without
    scripts; once scripts run, the bar sets it to its own height (preact-ui README, "Storefront"). */
 @media (width < 64rem) {

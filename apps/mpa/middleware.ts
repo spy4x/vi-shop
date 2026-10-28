@@ -23,8 +23,8 @@ import { securityHeaderList, withSecurityHeaders } from "@spy4x/server/http/secu
  * post's cover and the images in its body are `https:` addresses wherever the operator keeps them,
  * so `img-src` allows any `https:` image. Only operators write posts, and an image runs no code.
  *
- * The storefront draws each colour swatch and each look's view-transition name in a `style`
- * attribute (preact-components' `SwatchChips` and `LookTile`), whose values come from the catalog,
+ * The storefront draws each colour swatch in a `style` attribute (preact-components'
+ * `SwatchChips` and `LookTile`), whose colours come from the catalog,
  * so no hash can list them: `style-src-attr 'unsafe-inline'` allows style attributes, and only
  * them. `<style>` blocks and stylesheets stay on `'self'`, and a style attribute runs no script.
  * The library's `extraSources` has no `styleSrcAttr`, so the directive is added here.
