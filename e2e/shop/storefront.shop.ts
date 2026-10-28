@@ -79,11 +79,17 @@ test(`a phone sees the order message in two lines at most, without the link`, as
     const preview = page.locator(`[data-e2e="order-bar-preview"]`)
 
     await expect(preview).toBeVisible()
-    await expect(preview).not.toContainText(`https://`)
-    const { height, line } = await preview.evaluate((element) => ({
-      height: element.getBoundingClientRect().height,
-      line: parseFloat(getComputedStyle(element).lineHeight),
-    }))
+    await expect(preview).not.toContainText(JACKET)
+    // A long message is cut at the second line, and a short one never reaches a third.
+    const { clamp, height, line } = await preview.evaluate((element) => {
+      const style = getComputedStyle(element)
+      return {
+        clamp: style.webkitLineClamp,
+        height: element.getBoundingClientRect().height,
+        line: parseFloat(style.lineHeight),
+      }
+    })
+    expect(clamp).toBe(`2`)
     expect(height).toBeLessThanOrEqual(2 * line + 1)
     await expect(page.getByText(`127.0.0.1:48420${JACKET}`, { exact: false })).toBeHidden()
   } finally {
