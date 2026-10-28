@@ -31,7 +31,7 @@ seller runs it from the admin panel without a developer.
 
 ## What sets the shop apart
 
-- **Quality first, priced to match.** The clothes cost more than a market stall's, and the site
+- **Quality first, priced to match.** The price is high, so not everyone buys, and the site
   says why: close-up photos of fabric and seams, the material and how it is made, and no discount
   banners. A shopper who wants the cheapest option is not the audience.
 - **Same-day delivery in Da Nang** for orders placed before 16:00 (Vietnam time). The site says it
@@ -55,8 +55,8 @@ seller runs it from the admin panel without a developer.
    size is kept for the visit.
 3. Open an item: every photo, the price, the colours and sizes that are available, the material,
    fit and care, and a size table.
-4. Enter their height and weight in the size calculator and see the size to pick, preselected in
-   the size choice. The answer is kept for the visit.
+4. On an item page, enter their height and weight in the size calculator and see the size to
+   pick, preselected in the size choice. The numbers are kept for the visit.
 5. Pick a colour and size and press **Order on Telegram** or **Order on Zalo**. Telegram opens a
    chat with the shop and a ready message naming the item, colour, size, price and link. Zalo
    cannot pre-fill a message, so the page copies the same text and says "Paste it into the chat".
@@ -69,7 +69,8 @@ seller runs it from the admin panel without a developer.
 ## What the seller can do (admin panel)
 
 1. Add an item: name and description in both languages, price in VND, category, colours, sizes
-   with the height and weight range each fits, material, fit and care, and photos straight from a phone (JPEG, PNG and iPhone HEIC).
+   with the height and weight range each fits, material, fit and care, and photos straight from
+   a phone (JPEG, PNG and iPhone HEIC).
 2. Order the photos, pick the cover, and mark which colour a photo shows.
 3. Mark the item, a colour or a single size as sold out; hide or publish the item.
 4. Manage categories, in both languages.
@@ -92,8 +93,9 @@ Every id is a UUID version 7. Text a shopper reads is stored in both languages.
 | Contact link | kind (telegram, zalo, instagram, facebook, phone, e-mail), value, position                                                                                        |
 | FAQ entry    | question and answer (vi, en), position                                                                                                                            |
 
-Photos are processed by the worker after upload (the browser uploads straight to the file store), and catalog photos get a public read path, since the file store signs downloads for group members only: metadata is stripped (iPhone photos carry the GPS location of
-where they were taken), HEIC is converted, and each photo is stored in a few widths as AVIF and
+Photos are processed by the worker after upload (the browser uploads straight to the file
+store), and catalog photos get a public read path, since the file store signs downloads for group
+members only: metadata is stripped (iPhone photos carry the GPS location of where they were taken), HEIC is converted, and each photo is stored in a few widths as AVIF and
 WebP for `srcset`.
 
 ## SEO and AEO
@@ -143,8 +145,8 @@ Reusable work is done in Seed and the libraries first; the shop takes it with a 
 | 3   | Seed ([#276](https://github.com/spy4x/seed/issues/276)) | The website in several languages, with a per-product default (Vietnamese at `/`, English at `/en/`).                                  |
 | 4   | Seed                                                     | Contact links: a site setting edited in the admin panel.                                 |
 | 5   | preact-components                                        | Storefront patterns in the design language: the look tile, colour swatches, order bar.   |
-| 6   | Seed                                                     | Catalog module: categories, items, colours, sizes, photos; admin screens; public pages.  |
-| 7   | vi-shop                                                  | The storefront: the shop's design, order messages, order list, FAQ, SEO and AEO.         |
+| 6   | Seed                                                     | Catalog module: categories, items, colours, sizes with height and weight ranges, photos; admin screens; public pages. |
+| 7   | vi-shop                                                  | The storefront: the shop's design, order messages, order list, FAQ, SEO and AEO, the size calculator, the delivery line. |
 | 8   | vi-shop                                                  | The first catalog: the eight items of the first photo session, with prices from the owner. |
 
 Steps 2 to 5 can run side by side; 6 needs 2 and 4; 7 needs 1, 3, 5 and 6.

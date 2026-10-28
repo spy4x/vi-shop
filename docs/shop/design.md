@@ -87,10 +87,6 @@ The newest looks, full size, with the brand's headline over the first one.
 ```
 
 - The size row filters the list on the server (`?size=M`, kept in a cookie for the visit).
-- After the size row, "Chưa biết size? Tính size" (not sure of your size? find it) opens the size
-  calculator: height in cm and weight in kg, two number fields in a GET form. The server answers
-  with the size to pick and selects it in the row. If the two numbers point at different sizes,
-  it says so and suggests the larger one ("Bạn nằm giữa S và M. Chọn M nếu thích mặc rộng").
 - Under each look: the name, the price, the sizes (the chosen one marked, sold-out ones struck
   through) and the colour dots. The whole look is one link.
 - Empty state, when no item fits the chosen size: "Chưa có món nào size M. Xem tất cả size?" with
@@ -137,8 +133,12 @@ In the wireframes, `[ ]` is the one accent-filled button and `( )` a secondary o
   `https://zalo.me/<phone>`; with JavaScript it copies the message first and says "Đã chép tin
   nhắn. Dán vào Zalo." (Message copied. Paste it into Zalo.); without JavaScript the message is
   shown selectable above the link.
-- Under the size chips, the same size calculator as on the home page, filled with the visit's
-  numbers if the shopper used it already. Its answer uses this item's size ranges.
+- Under the size chips, "Chưa biết size? Tính size" (not sure of your size? find it) opens the
+  size calculator: height in cm and weight in kg, two number fields in a GET form. The server
+  answers from this item's size ranges and selects that size. If height and weight point at
+  different sizes, it names both and suggests the larger: "Size của bạn ở giữa S và M. Chọn M cho
+  thoải mái." The numbers are kept for the visit. An item whose sizes have no ranges shows no
+  calculator.
 - The order bar carries the delivery line from point 6 above the buttons.
 - With no size picked, the buttons stay enabled and the message says "size: chưa chọn" (size: not
   chosen), so a shopper can still ask.
@@ -168,7 +168,9 @@ https://vi-shop.antonshubin.com/ao-khoac/ao-khoac-zip-nau
 ```
 
 The delivery line and the size calculator, in English: "Same-day delivery in Da Nang if you order
-before 16:00", "Not sure of your size? Find it", "Height (cm)", "Weight (kg)", "Your size: M".
+before 16:00", "Not sure of your size? Find it", "Height (cm)", "Weight (kg)", "Your size: M",
+"You are between S and M. M will be more comfortable." Pages that show the delivery line are not
+cached past the minute, so the line never says "today" after 16:00.
 
 ## Keyboard and accessibility
 
