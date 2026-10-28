@@ -170,10 +170,12 @@ describe("securityHeadersMiddleware", () => {
   const policy =
     "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; " +
     "connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; " +
-    "frame-ancestors 'none'"
+    "frame-ancestors 'none'; style-src-attr 'unsafe-inline'"
 
+  /** The headers' policy, without the nonce a rendered page adds (the storefront's tests check it). */
   function expectSecurityHeaders(response: Response) {
-    expect(response.headers.get("content-security-policy")).toBe(policy)
+    expect(response.headers.get("content-security-policy")?.replace(/ 'nonce-[0-9a-f]+'/, ""))
+      .toBe(policy)
     expect(response.headers.get("x-content-type-options")).toBe("nosniff")
     expect(response.headers.get("referrer-policy")).toBe("no-referrer")
     expect(response.headers.get("x-frame-options")).toBe("DENY")

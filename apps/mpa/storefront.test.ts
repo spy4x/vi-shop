@@ -15,7 +15,7 @@ import FaqEn from "./routes/en/faq.tsx"
 import { handler as photo } from "./routes/anh/[id]/[file].ts"
 import { handler as sitemap } from "./routes/sitemap.xml.ts"
 import { handler as llms } from "./routes/llms.txt.ts"
-import { pageMiddleware } from "./middleware.ts"
+import { pageMiddleware, securityHeadersMiddleware } from "./middleware.ts"
 import { readContactLinks } from "./contact-links.ts"
 import { shopStateMiddleware } from "./shop/middleware.ts"
 import type { ShopCatalog } from "./shop/catalog.ts"
@@ -33,6 +33,7 @@ const info = {
   completed: Promise.resolve(),
 } as Deno.ServeHandlerInfo<Deno.NetAddr>
 const sameOrigin = { origin: site, "sec-fetch-site": `same-origin` }
+const securityHeaders = await securityHeadersMiddleware(config)
 
 /** A page module as `App.route` takes it; `define.page` types its props for one handler. */
 const view = (module: { default: unknown; handler?: unknown }) =>
@@ -53,6 +54,7 @@ function shop(
 ) {
   const photos: string[] = []
   const handler = new App<State>()
+    .use(securityHeaders)
     .use(pageMiddleware(config, () => Promise.reject(new Error(`no API`)), () => false))
     .use(define.middleware((ctx) => {
       ctx.state.contactLinks = links ? readContactLinks({ links: SAMPLE_CONTACT_LINKS }) : []
@@ -357,6 +359,26 @@ describe(`the FAQ`, () => {
     expect(vi.body).toContain(`Đặt hàng thế nào?`)
     expect(en.body).toContain(`How do I order?`)
     expect(jsonLd(vi.body, `FAQPage`)).toHaveLength(1)
+  })
+})
+
+describe(`the security policy`, () => {
+  it(`lets the item page's island script run with its render's nonce, and no other inline script`, async () => {
+    const { headers, body } = await get(`/ao-khoac/ao-khoac-zip-nau`)
+    const nonce = body.match(/<script[^>]* nonce="([0-9a-f]+)"/)?.[1]
+    const policy = headers.get(`content-security-policy`) ?? ``
+
+    expect(nonce).toBeDefined()
+    expect(policy).toContain(`script-src 'self' 'nonce-${nonce}';`)
+    expect(policy).not.toMatch(/script-src[^;]*unsafe-inline/)
+  })
+
+  it(`allows the swatches' style attributes, and keeps style blocks on the site's own files`, async () => {
+    const { headers } = await get(`/`)
+    const policy = headers.get(`content-security-policy`) ?? ``
+
+    expect(policy).toContain(`style-src-attr 'unsafe-inline'`)
+    expect(policy).toMatch(/style-src 'self';/)
   })
 })
 

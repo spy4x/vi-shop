@@ -22,21 +22,49 @@ import { securityHeaderList, withSecurityHeaders } from "@spy4x/server/http/secu
  * `script-src` (its tracker) and `connect-src` (the events it sends), and nowhere else. A blog
  * post's cover and the images in its body are `https:` addresses wherever the operator keeps them,
  * so `img-src` allows any `https:` image. Only operators write posts, and an image runs no code.
+ *
+ * The storefront draws each colour swatch and each look's view-transition name in a `style`
+ * attribute (preact-components' `SwatchChips` and `LookTile`), whose values come from the catalog,
+ * so no hash can list them: `style-src-attr 'unsafe-inline'` allows style attributes, and only
+ * them. `<style>` blocks and stylesheets stay on `'self'`, and a style attribute runs no script.
+ * The library's `extraSources` has no `styleSrcAttr`, so the directive is added here.
  */
-function securityHeaderSet(config: MpaConfig): Promise<[string, string][]> {
+async function securityHeaderSet(config: MpaConfig): Promise<[string, string][]> {
   const umami = config.analytics?.origin
-  return securityHeaderList({
+  const list = await securityHeaderList({
     extraSources: {
       ...(config.apiOrigin === config.webAppOrigin ? {} : { formAction: [config.apiOrigin] }),
       imgSrc: [`https:`],
       ...(umami ? { scriptSrc: [umami], connectSrc: [umami] } : {}),
     },
   })
+  return list.map(([name, value]) =>
+    name.toLowerCase() === `content-security-policy`
+      ? [name, `${value}; style-src-attr 'unsafe-inline'`]
+      : [name, value]
+  )
+}
+
+/** Where Fresh leaves a rendered page's nonce on its response (`NONCE_SYMBOL` in `fresh`). */
+const FRESH_NONCE = Symbol.for(`__freshNonce`)
+
+/**
+ * `set` with the page's nonce allowed in `script-src`. Fresh gives the inline script that wakes a
+ * page's islands, and every other inline script it renders, a nonce made for that render.
+ */
+function withNonce(set: [string, string][], nonce: unknown): [string, string][] {
+  if (typeof nonce !== `string` || !/^[0-9a-f]+$/.test(nonce)) return set
+  return set.map(([name, value]) =>
+    name.toLowerCase() === `content-security-policy`
+      ? [name, value.replace(`script-src 'self'`, `script-src 'self' 'nonce-${nonce}'`)]
+      : [name, value]
+  )
 }
 
 /**
  * Puts the security headers on every response: pages, static files, redirects, refusals and the
- * answer to an error a route throws. It goes first in the app, before the static files.
+ * answer to an error a route throws. It goes first in the app, before the static files. A page
+ * with islands also has its render's nonce allowed for scripts.
  */
 export async function securityHeadersMiddleware(config: MpaConfig) {
   const set = await securityHeaderSet(config)
@@ -47,7 +75,8 @@ export async function securityHeadersMiddleware(config: MpaConfig) {
     } catch (error) {
       response = errorResponse(error)
     }
-    return withSecurityHeaders(response, set)
+    // deno-lint-ignore no-explicit-any
+    return withSecurityHeaders(response, withNonce(set, (response as any)[FRESH_NONCE]))
   })
 }
 
@@ -141,11 +170,14 @@ function withPageHeaders(response: Response, path: string): Response {
   } else if (headers.get("content-type")?.startsWith("text/html")) {
     headers.set("cache-control", "no-cache")
   }
-  return new Response(response.body, {
+  const answer = new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
     headers,
-  })
+  }) // Keep the render's nonce for `securityHeadersMiddleware`, which runs outside this one.
+   // deno-lint-ignore no-explicit-any
+  ;(answer as any)[FRESH_NONCE] = (response as any)[FRESH_NONCE]
+  return answer
 }
 
 /** What Fresh sends with a static file whose address carries no build id. */
