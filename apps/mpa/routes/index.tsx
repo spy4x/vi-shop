@@ -1,5 +1,6 @@
 import { SITE_LANG, SITE_NAME, SiteFrame, type SitePageHead } from "../site.tsx"
 import { define } from "../utils.ts"
+import { organizationJsonLd } from "../contact-links.ts"
 
 /**
  * The home page's title and description, as search results, social previews and `llms.txt` show
@@ -32,7 +33,13 @@ export default define.page(function Home({ state }) {
     <SiteFrame
       state={state}
       path="/"
-      head={{ ...HOME_HEAD, jsonLd: [websiteJsonLd(state.webAppOrigin)] }}
+      head={{
+        ...HOME_HEAD,
+        jsonLd: [
+          websiteJsonLd(state.webAppOrigin),
+          organizationJsonLd(state.webAppOrigin, state.contactLinks ?? []),
+        ].filter((node) => node !== null),
+      }}
     >
       <section
         aria-labelledby="home-title"

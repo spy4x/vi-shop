@@ -9,6 +9,7 @@ import { SiteHeader } from "@spy4x/preact-system/site-header"
 import { breadcrumbListJsonLd } from "@spy4x/platform/universal/seo"
 import { createFormatters } from "@spy4x/time/format"
 import { AUTHOR_URL, REPOSITORY_URL, SITE_NAME } from "./brand.ts"
+import { contactFooterLinks } from "./contact-links.ts"
 import type { State } from "./utils.ts"
 
 export { AUTHOR_URL, REPOSITORY_URL, SITE_NAME }
@@ -52,16 +53,16 @@ export function pageTitle(title: string): string {
 
 /** What every page hands {@link SiteFrame}. */
 export interface SiteFrameProps {
-  /** The request's state: the website's own origin, for canonical links. */
-  state: Pick<State, "webAppOrigin">
+  /** The request's state: the website's own origin, for canonical links, and the contact links. */
+  state: Pick<State, "webAppOrigin" | "contactLinks">
   /** The page's path on this website, such as `/privacy`, for its canonical address. */
   path: string
   head: SitePageHead
   children: ComponentChildren
 }
 
-/** The footer's links: the two legal pages. */
-const FOOTER_GROUPS: SiteFooterGroup[] = [
+/** The footer's links: the two legal pages, then the shop's contact links once there are any. */
+const LEGAL_GROUP: SiteFooterGroup[] = [
   {
     title: `Thông tin`,
     links: [
@@ -73,7 +74,7 @@ const FOOTER_GROUPS: SiteFooterGroup[] = [
 
 /**
  * The frame of every page of the public website: its head tags, a link that skips to the content,
- * the header with the shop's name, the content, and the footer with the legal pages. Every link
+ * the header with the shop's name, the content, and the footer with the legal pages and contacts. Every link
  * works with JavaScript turned off.
  */
 export function SiteFrame({ state, path, head, children }: SiteFrameProps): JSX.Element {
@@ -113,7 +114,12 @@ export function SiteFrame({ state, path, head, children }: SiteFrameProps): JSX.
       </main>
       <SiteFooter
         brand={<BrandMark Icon={IconTag} name={SITE_NAME} />}
-        groups={FOOTER_GROUPS}
+        groups={[
+          ...LEGAL_GROUP,
+          ...((state.contactLinks ?? []).length > 0
+            ? [{ title: `Liên hệ`, links: contactFooterLinks(state.contactLinks ?? []) }]
+            : []),
+        ]}
         bottom={<p>© {SITE_NAME}</p>}
       />
     </>
