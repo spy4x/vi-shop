@@ -236,8 +236,10 @@ describe(`an item page`, () => {
     expect(body).toContain(`size Free size`)
   })
 
-  it(`offers to ask when a sold-out item is back, and drops "Add to list"`, async () => {
+  it(`offers to ask when a sold-out item is back, without "Add to list" or a delivery promise`, async () => {
     const { body } = await get(`/bo-do/bo-do-tap-xanh-reu`)
+
+    expect(body).not.toContain(`Giao trong ngày ở Đà Nẵng`)
 
     expect(body).toContain(`Chào shop, khi nào món này có lại vậy?`)
     expect(body).toContain(`Hỏi khi có lại qua Telegram`)

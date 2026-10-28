@@ -159,123 +159,152 @@ export default function ItemView(props: ItemViewProps): JSX.Element {
           )}
       </section>
 
-      <div class="flex flex-col gap-6 px-4 lg:col-start-2 lg:row-start-1 lg:px-0">
-        <a
-          href={back.href}
-          class="self-start rounded-sm text-sm font-medium text-muted underline-offset-4 hover:underline"
-          data-e2e="item-back"
-        >
-          ← {words.back(back.name)}
-        </a>
-        <div class="flex flex-col gap-2">
-          <h1 class="text-4xl font-extrabold leading-tight tracking-tighter text-balance">
-            {item.name}
-          </h1>
-          <p
-            class="flex items-baseline gap-3 text-3xl font-bold tabular-nums"
-            data-e2e="item-price"
+      {/* Sticky beside the photos from `lg`; on a phone, the order bar comes last. */}
+      <div class="max-lg:contents lg:sticky lg:top-6 lg:col-start-2 lg:row-span-3 lg:row-start-1 lg:flex lg:max-h-[calc(100dvh-3rem)] lg:flex-col lg:gap-8 lg:self-start lg:overflow-y-auto">
+        <div class="flex flex-col gap-6 px-4 lg:px-0">
+          <a
+            href={back.href}
+            class="self-start rounded-sm text-sm font-medium text-muted underline-offset-4 hover:underline"
+            data-e2e="item-back"
           >
-            {soldOut ? <s class="text-muted">{formatPrice(item.price, lang)}</s> : (
-              formatPrice(item.price, lang)
+            ← {words.back(back.name)}
+          </a>
+          <div class="flex flex-col gap-2">
+            <h1 class="text-4xl font-extrabold leading-tight tracking-tighter text-balance">
+              {item.name}
+            </h1>
+            <p
+              class="flex items-baseline gap-3 text-3xl font-bold tabular-nums"
+              data-e2e="item-price"
+            >
+              {soldOut ? <s class="text-muted">{formatPrice(item.price, lang)}</s> : (
+                formatPrice(item.price, lang)
+              )}
+              {soldOut && <span class="text-base font-semibold">{words.soldOut}</span>}
+            </p>
+          </div>
+          <form
+            id="order"
+            method="post"
+            action={PATHS.order[lang]}
+            class="flex flex-col gap-4"
+            onSubmit={onSubmit}
+            data-e2e="item-order-form"
+          >
+            <input type="hidden" name="item" value={item.slug} />
+            <input type="hidden" name="intent" value={intent} />
+            {item.colours.length > 0 && (
+              <SwatchChips
+                legend={words.colour}
+                name="color"
+                value={colourId}
+                onChange={(value) => {
+                  setColourId(value)
+                  setStatus(null)
+                }}
+                options={item.colours.map((each) => ({
+                  value: each.id,
+                  name: each.name,
+                  color: each.swatch,
+                }))}
+              />
             )}
-            {soldOut && <span class="text-base font-semibold">{words.soldOut}</span>}
-          </p>
+            {item.sizes.length > 0 && (
+              <RadioChips
+                legend={words.size}
+                name="size"
+                value={size?.label ?? null}
+                onChange={(value) => {
+                  setSizeLabel(value)
+                  setStatus(null)
+                }}
+                options={item.sizes.map((each) => {
+                  const gone = isSoldOut(item, each, colour)
+                  return {
+                    value: each.label,
+                    disabled: gone,
+                    label: gone
+                      ? (
+                        <>
+                          <s>{each.label}</s>
+                          <span class="sr-only">{`, ${words.sizeSoldOut}`}</span>
+                        </>
+                      )
+                      : each.label,
+                  }
+                })}
+              />
+            )}
+          </form>
+          {calculator && (
+            <details
+              open={calculator.result !== null}
+              class="rounded-primary border border-subtle px-4 py-3"
+              data-e2e="size-calculator"
+            >
+              <summary class="cursor-pointer font-medium">{words.calculator}</summary>
+              <form method="get" action={path} class="mt-4 flex flex-wrap items-end gap-3">
+                {colour && <input type="hidden" name="color" value={colour.id} />}
+                <Field id="height" label={words.heightCm} class="w-32">
+                  <Input
+                    type="number"
+                    name="height"
+                    inputMode="numeric"
+                    min={1}
+                    max={250}
+                    required
+                    defaultValue={calculator.height?.toString() ?? ``}
+                  />
+                </Field>
+                <Field id="weight" label={words.weightKg} class="w-32">
+                  <Input
+                    type="number"
+                    name="weight"
+                    inputMode="numeric"
+                    min={1}
+                    max={300}
+                    required
+                    defaultValue={calculator.weight?.toString() ?? ``}
+                  />
+                </Field>
+                <button type="submit" class={buttonClasses(`outline`, `md`)}>
+                  {words.calculate}
+                </button>
+              </form>
+              {calculator.result && (
+                <p role="status" class="mt-3 font-semibold text-pretty" data-e2e="size-advice">
+                  {calculator.result}
+                </p>
+              )}
+            </details>
+          )}
         </div>
-        <form
-          id="order"
-          method="post"
-          action={PATHS.order[lang]}
-          class="flex flex-col gap-4"
-          onSubmit={onSubmit}
-          data-e2e="item-order-form"
-        >
-          <input type="hidden" name="item" value={item.slug} />
-          <input type="hidden" name="intent" value={intent} />
-          {item.colours.length > 0 && (
-            <SwatchChips
-              legend={words.colour}
-              name="color"
-              value={colourId}
-              onChange={(value) => {
-                setColourId(value)
-                setStatus(null)
+
+        {actions.length > 0
+          ? (
+            <OrderBar
+              form="order"
+              class="max-lg:order-last"
+              message={message}
+              actions={barActions(actions)}
+              secondary={soldOut ? undefined : {
+                label: words.addToList,
+                icon: <IconPlus aria-hidden="true" class="size-5" />,
+                name: `add`,
+                value: `1`,
+                attributes: { formaction: PATHS.list[lang] },
               }}
-              options={item.colours.map((each) => ({
-                value: each.id,
-                name: each.name,
-                color: each.swatch,
-              }))}
+              status={status ?? undefined}
+              // A sold-out piece has no delivery to promise; the price already says "Sold out".
+              note={soldOut ? undefined : delivery}
+              labels={{ region: words.orderRegion, message: words.orderMessage }}
             />
+          )
+          : (
+            <p class="px-4 text-muted max-lg:order-last lg:px-0" data-e2e="no-channel">
+              {words.noChannel}
+            </p>
           )}
-          {item.sizes.length > 0 && (
-            <RadioChips
-              legend={words.size}
-              name="size"
-              value={size?.label ?? null}
-              onChange={(value) => {
-                setSizeLabel(value)
-                setStatus(null)
-              }}
-              options={item.sizes.map((each) => {
-                const gone = isSoldOut(item, each, colour)
-                return {
-                  value: each.label,
-                  disabled: gone,
-                  label: gone
-                    ? (
-                      <>
-                        <s>{each.label}</s>
-                        <span class="sr-only">{`, ${words.sizeSoldOut}`}</span>
-                      </>
-                    )
-                    : each.label,
-                }
-              })}
-            />
-          )}
-        </form>
-        {calculator && (
-          <details
-            open={calculator.result !== null}
-            class="rounded-primary border border-subtle px-4 py-3"
-            data-e2e="size-calculator"
-          >
-            <summary class="cursor-pointer font-medium">{words.calculator}</summary>
-            <form method="get" action={path} class="mt-4 flex flex-wrap items-end gap-3">
-              {colour && <input type="hidden" name="color" value={colour.id} />}
-              <Field id="height" label={words.heightCm} class="w-32">
-                <Input
-                  type="number"
-                  name="height"
-                  inputMode="numeric"
-                  min={1}
-                  max={250}
-                  required
-                  defaultValue={calculator.height?.toString() ?? ``}
-                />
-              </Field>
-              <Field id="weight" label={words.weightKg} class="w-32">
-                <Input
-                  type="number"
-                  name="weight"
-                  inputMode="numeric"
-                  min={1}
-                  max={300}
-                  required
-                  defaultValue={calculator.weight?.toString() ?? ``}
-                />
-              </Field>
-              <button type="submit" class={buttonClasses(`outline`, `md`)}>
-                {words.calculate}
-              </button>
-            </form>
-            {calculator.result && (
-              <p role="status" class="mt-3 font-semibold text-pretty" data-e2e="size-advice">
-                {calculator.result}
-              </p>
-            )}
-          </details>
-        )}
       </div>
 
       {children && (
@@ -283,31 +312,6 @@ export default function ItemView(props: ItemViewProps): JSX.Element {
           {children}
         </div>
       )}
-
-      {actions.length > 0
-        ? (
-          <OrderBar
-            form="order"
-            class="lg:col-start-2 lg:row-start-2 lg:self-start"
-            message={message}
-            actions={barActions(actions)}
-            secondary={soldOut ? undefined : {
-              label: words.addToList,
-              icon: <IconPlus aria-hidden="true" class="size-5" />,
-              name: `add`,
-              value: `1`,
-              attributes: { formaction: PATHS.list[lang] },
-            }}
-            status={status ?? (soldOut ? words.soldOut : undefined)}
-            note={delivery}
-            labels={{ region: words.orderRegion, message: words.orderMessage }}
-          />
-        )
-        : (
-          <p class="px-4 text-muted lg:col-start-2 lg:row-start-2 lg:px-0" data-e2e="no-channel">
-            {words.noChannel}
-          </p>
-        )}
     </div>
   )
 }
