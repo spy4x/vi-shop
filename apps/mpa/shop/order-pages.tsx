@@ -102,7 +102,7 @@ export function listRoute(lang: Lang) {
         <Head>
           <script src="/shop.js" defer></script>
         </Head>
-        <div class="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 pt-8 sm:px-6 lg:pt-14">
+        <div class="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 pt-8 sm:px-6 lg:pt-12">
           <header class="flex flex-col gap-2">
             <h1 class="text-4xl font-extrabold leading-tight tracking-tighter text-balance">
               {words.listTitle}

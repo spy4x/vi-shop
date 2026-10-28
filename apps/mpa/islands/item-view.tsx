@@ -185,7 +185,7 @@ export default function ItemView(props: ItemViewProps): JSX.Element {
           id="order"
           method="post"
           action={PATHS.order[lang]}
-          class="flex flex-col gap-5"
+          class="flex flex-col gap-4"
           onSubmit={onSubmit}
           data-e2e="item-order-form"
         >

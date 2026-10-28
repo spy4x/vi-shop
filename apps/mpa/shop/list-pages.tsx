@@ -100,7 +100,7 @@ export function homeRoute(lang: Lang) {
         }}
       >
         <FilterScript />
-        <div class="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-16 pt-8 sm:px-6 lg:gap-14 lg:px-8 lg:pt-14">
+        <div class="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 pb-16 pt-8 sm:px-6 lg:gap-12 lg:px-8 lg:pt-12">
           <header class="flex flex-col gap-4">
             <h1 class="text-6xl font-extrabold leading-tight tracking-tighter text-balance lg:text-9xl">
               {words.headline}
@@ -170,7 +170,7 @@ export function categoryRoute(lang: Lang) {
         }}
       >
         <FilterScript />
-        <div class="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-16 pt-8 sm:px-6 lg:gap-14 lg:px-8 lg:pt-14">
+        <div class="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 pb-16 pt-8 sm:px-6 lg:gap-12 lg:px-8 lg:pt-12">
           <h1 class="text-6xl font-extrabold leading-tight tracking-tighter text-balance lg:text-9xl">
             {name}
           </h1>
