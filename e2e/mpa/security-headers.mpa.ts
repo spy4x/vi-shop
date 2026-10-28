@@ -13,7 +13,7 @@ function expectSecurityHeaders(response: APIResponse) {
   expect(headers["content-security-policy"]?.replace(/ 'nonce-[0-9a-f]+'/, "")).toBe(
     `default-src 'self'; script-src 'self' ${UMAMI}; style-src 'self'; img-src 'self' data: https:; ` +
       `connect-src 'self' ${UMAMI}; object-src 'none'; base-uri 'self'; ` +
-      `form-action 'self' ${SPA}; ` +
+      `form-action 'self' ${SPA} https://t.me; ` +
       "frame-ancestors 'none'; style-src-attr 'unsafe-inline'",
   )
   expect(headers["x-content-type-options"]).toBe("nosniff")

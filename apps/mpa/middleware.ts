@@ -10,13 +10,21 @@ import { createSameOriginCheck } from "@spy4x/server/http/same-origin"
 import { securityHeaderList, withSecurityHeaders } from "@spy4x/server/http/security-headers"
 
 /**
+ * Where the order step sends a shopper who orders on Telegram: `/dat-hang` answers the order form
+ * with a redirect to `https://t.me/<shop>?text=…`, and a browser applies `form-action` to that
+ * redirect too.
+ */
+const TELEGRAM_ORIGIN = `https://t.me`
+
+/**
  * The header set `securityHeaders` of `@spy4x/server` sends; the helper itself is Hono middleware
  * and the MPA runs on Fresh. A page here loads one stylesheet from its own origin and no script,
  * inline block or font, so the policy is the library's strictest: everything from `'self'` only,
  * no plugins and no framing, images aside (below). Its `Referrer-Policy: no-referrer` also covers
  * the newsletter pages, whose address carries a token.
  *
- * Two things widen it. The pricing page's form posts to the MPA, which redirects to the SPA's
+ * Three things widen it. The order form's redirect to Telegram is allowed in `form-action`
+ * ({@link TELEGRAM_ORIGIN}). The pricing page's form posts to the MPA, which redirects to the SPA's
  * sign-up, and a browser applies `form-action` to that redirect too: on a domain of its own the
  * MPA therefore allows the SPA's origin there. With analytics on, the Umami origin is allowed in
  * `script-src` (its tracker) and `connect-src` (the events it sends), and nowhere else. A blog
@@ -33,7 +41,10 @@ async function securityHeaderSet(config: MpaConfig): Promise<[string, string][]>
   const umami = config.analytics?.origin
   const list = await securityHeaderList({
     extraSources: {
-      ...(config.apiOrigin === config.webAppOrigin ? {} : { formAction: [config.apiOrigin] }),
+      formAction: [
+        ...(config.apiOrigin === config.webAppOrigin ? [] : [config.apiOrigin]),
+        TELEGRAM_ORIGIN,
+      ],
       imgSrc: [`https:`],
       ...(umami ? { scriptSrc: [umami], connectSrc: [umami] } : {}),
     },
