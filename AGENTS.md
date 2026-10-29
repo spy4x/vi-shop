@@ -60,8 +60,8 @@ The website is the storefront, in `apps/mpa`:
 
 Vietnamese is the default language, English the second. Every page, label, item text and
 structured-data string exists in both. The exception is the blog (`/bai-viet`) and the newsletter
-(`/nhan-tin` and its mails), which are Vietnamese only: the shop's buyers read Vietnamese, and one
-language keeps them simple to write and send. The owner asked for this on 2026-10-29: "Keep blog
+(`/nhan-tin` and its mails), which are Vietnamese only for now: one language keeps them simple to
+write and send. The owner asked for this on 2026-10-29: "Keep blog
 and newsletter simple for now, only Vietnamese". Prices are in Vietnamese dong (VND), stored as
 an integer number of dong.
 
