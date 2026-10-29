@@ -74,3 +74,16 @@ deployed the way Seed deploys itself (`docs/deploy.md`). Other projects run on t
 not ours to touch.
 The production env file is committed encrypted as `infra/envs/.env.prod.age` (age64 per line);
 `deno task env:decrypt` writes `infra/envs/.env.prod`, which `deno task deploy` reads.
+
+## A chat message in Vietnamese
+
+A chat message in Vietnamese comes from the shop's owner, a business person with no technical
+background, not from the developer. This overrides the global "English only" for that reply.
+
+- Reply in Vietnamese, also when the message has no diacritics ("cai gi day" is "what is this?").
+- Talk business: customers, orders, sales, what shoppers see on the website and staff see in the
+  admin panel, cost and time.
+- Leave out code, git, PRs, file paths, frameworks, servers and deploys. When something technical
+  matters, say what it means for the shop in plain words.
+- Code, commits, PRs and issues stay in English. A chat message in English comes from the
+  developer, as usual.
