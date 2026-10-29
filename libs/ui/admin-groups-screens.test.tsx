@@ -29,7 +29,8 @@ import {
 import { AdminUserScreen, type AdminUserScreenProps } from "./admin-user-screen.tsx"
 
 import { I18nContext } from "@spy4x/preact-ui/i18n"
-import { ADMIN_PSEUDO, englishLeft } from "./admin-pseudo.ts"
+import { ADMIN_PSEUDO, englishLeft } from "./i18n-testing.ts"
+
 const window = new Window({ url: `http://admin.localhost/` })
 const own = {
   document: globalThis.document,
@@ -863,7 +864,6 @@ describe("the group screens in en-XA", () => {
         <AdminGroupScreen {...groupProps([], { tab: `overview` })} />
         <AdminGroupScreen {...groupProps([], { tab: `members` })} />
         <AdminGroupScreen {...groupProps([], { tab: `invitations` })} />
-        <AdminGroupScreen {...groupProps([], { tab: `activity` })} />
         <AdminGroupScreen
           {...groupProps([], { tab: `files`, dialog: { kind: `removeFile`, fileId: FILE_ID } })}
         />
@@ -875,8 +875,20 @@ describe("the group screens in en-XA", () => {
       /[a-z]+@example\.com/g,
       `receipt.pdf`,
       `IMG_0001.png`,
-      // The groups lane's gap: the activity sentences (`describeActivity`) are English still.
-      `Olga Operator removed Bob Builder from the group`,
     ])).toEqual([])
+  })
+
+  it("tells the activity in the operator's language, each name isolated", async () => {
+    await mount(
+      <I18nContext.Provider value={ADMIN_PSEUDO}>
+        <AdminGroupScreen {...groupProps([], { tab: `activity` })} />
+      </I18nContext.Provider>,
+    )
+    const activity = find(`[data-e2e=admin-group-activity]`)
+    expect(englishLeft(activity, [`Olga Operator`, `Bob Builder`])).toEqual([])
+    expect([...activity.querySelectorAll(`bdi`)].map((name) => name.textContent)).toEqual([
+      `Olga Operator`,
+      `Bob Builder`,
+    ])
   })
 })

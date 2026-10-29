@@ -28,7 +28,7 @@ test("robots.txt points crawlers at a sitemap that lists the privacy page", asyn
 
 test("every page fits a 375 px phone without scrolling sideways", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 })
-  for (const path of ["/", "/en/", "/hoi-dap", "/danh-sach", "/privacy", "/terms"]) {
+  for (const path of ["/", "/en", "/hoi-dap", "/danh-sach", "/privacy", "/terms"]) {
     await page.goto(path)
     const pageWidth = await page.evaluate(() => document.documentElement.scrollWidth)
     expect(pageWidth, path).toBeLessThanOrEqual(375)

@@ -1,6 +1,6 @@
 /**
  * The website's two languages and the address of every shop page in each. Vietnamese is the
- * default and lives at `/`; English lives under `/en/`. Items and categories keep the same slug in
+ * default and lives at `/`; English at `/en` and under it. Items and categories keep the same slug in
  * both; the fixed pages have a path of their own in each language (docs/shop/spec.md, "SEO and
  * AEO").
  *
@@ -20,7 +20,7 @@ export function langOf(path: string): Lang {
 
 /** The fixed pages, by language. */
 export const PATHS = {
-  home: { vi: `/`, en: `/en/` },
+  home: { vi: `/`, en: `/en` },
   list: { vi: `/danh-sach`, en: `/en/list` },
   faq: { vi: `/hoi-dap`, en: `/en/faq` },
   order: { vi: `/dat-hang`, en: `/en/order` },

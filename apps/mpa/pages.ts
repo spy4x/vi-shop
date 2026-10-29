@@ -14,6 +14,11 @@ export interface SitePage {
    * the build date: a date that changes on every deploy tells a crawler nothing.
    */
   updated?: string
+  /**
+   * The page is English at every language's address, such as a legal page, so only its English
+   * address is listed. Every other page is listed once per language.
+   */
+  oneLanguage?: boolean
 }
 
 /** A page entry from its head, so the title and description are written once, on the page. */
@@ -21,8 +26,9 @@ function sitePage(
   path: string,
   head: { title: string; description: string },
   updated?: string,
+  oneLanguage?: boolean,
 ): SitePage {
-  return { path, title: head.title, description: head.description, updated }
+  return { path, title: head.title, description: head.description, updated, oneLanguage }
 }
 
 /**

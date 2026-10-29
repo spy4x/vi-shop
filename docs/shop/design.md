@@ -12,7 +12,7 @@ clothes on a person, and want three answers: what does it look like on a body, i
 how do I get it. The design answers those three, in that order, and drops the rest.
 
 1. **Looks, not thumbnails.** Every photo is a tall 3:4 picture of the clothes on a person, shown
-   large: one per screen width on a phone, a staggered contact sheet on a desktop. Words sit on
+   large: one per screen width on a phone, an aligned contact sheet on a desktop. Words sit on
    and beside the photos in big, tight type, as in a fashion magazine.
 2. **Size first.** A "Your size" chip row sits at the top of every list. Pick `M` once and the
    whole site answers "is there an M": items without one leave the list, and sold-out sizes are
@@ -63,7 +63,7 @@ design language first, as a "Storefront" section, then used here.
 Every screen is drawn at 390 px and 1440 px, in the light and dark palettes, with its empty,
 loading-free (server-rendered), error and long-text states. All of them work without JavaScript.
 
-### Home (`/`, `/en/`)
+### Home (`/`, `/en`)
 
 The newest looks, full size, with the brand's headline over the first one.
 
@@ -82,7 +82,7 @@ The newest looks, full size, with the brand's headline over the first one.
 │ │ chuyển động.         │ │            │  └──────────┘  Áo khoác  390.000 ₫  └──────────┘      │
 │ └──────────────────────┘ │            │  Quần short    590.000 ₫ S M ~L~    Bộ đồ xanh        │
 │ Áo khoác zip   590.000 ₫│            │  250.000 ₫     S M L               390.000 ₫          │
-│ S [M] ~L~   ● ●          │            │  staggered columns: 3 at 1440, 2 at 768, 1 at 390     │
+│ S [M] ~L~   ● ●          │            │  aligned columns: 3 at 1440, 2 at 768, 1 at 390       │
 │ ┌──────────────────────┐ │            └──────────────────────────────────────────────────────────┘
 │ │      next look       │ │
 ```

@@ -4,6 +4,7 @@ import { createToastStore } from "@spy4x/preact-signals/toast"
 import type { AdminCatalogResponse, CatalogItem } from "@domain/catalog"
 import type { AdminApiResult, AdminFetch } from "../../state.ts"
 import { CATALOG_PREPARING_READS, createCatalogState } from "./state.ts"
+import { languages } from "../../i18n.ts"
 
 const ok = <T>(data: T) => ({ ok: true, status: 200, data }) as AdminApiResult<T>
 const fail = (status: number, message: string, details?: unknown) =>
@@ -153,6 +154,28 @@ it(`reads an item with a photo being prepared again, but not forever`, async () 
   expect(calls).toHaveLength(CATALOG_PREPARING_READS)
 })
 
+it(`keeps reading past a minute while photos keep becoming ready`, async () => {
+  const photo = (id: string, ready: boolean) =>
+    ({ id, colourId: null, alt: {}, state: ready ? `ready` : `preparing` }) as const
+  const ids = Array.from({ length: 4 }, (_, i) => `0195f0b4-3c1e-7a00-8000-00000000010${i}`)
+  let read = 0
+  const { state, calls } = build({
+    // One more photo is ready every 20 reads: the batch takes longer than a minute.
+    [`GET /api/admin/catalog/items/${ID}`]: () => {
+      const ready = Math.floor(read++ / 20)
+      return ok({ item: { ...ITEM, photos: ids.map((id, i) => photo(id, i < ready)) } })
+    },
+  })
+  await state.openItem(ID)
+  calls.length = 0
+  let reads = 0
+  while (await state.readWhilePreparing()) reads++
+
+  // The last photo is ready on the 80th read again, well past the 30 a minute allows.
+  expect(state.itemEditor.value.item!.photos.every((one) => one.state === `ready`)).toBe(true)
+  expect(reads).toBe(80)
+})
+
 it(`makes a photo the cover by sending it first in the order`, async () => {
   const photos = [`a`, `b`, `c`].map((id) => ({ id, colourId: null, alt: {}, state: `ready` }))
   const { state, calls } = build({
@@ -231,4 +254,43 @@ it(`adds a source with a client-made id after checking it, and names a refused f
   expect(calls[0]).toBe(
     `POST /api/admin/catalog/sources {"id":"${NEW}","name":"Zalo group A","slug":"zalo-a"}`,
   )
+})
+
+it(`says a refusal of its own checks in the operator's language, under the field`, async () => {
+  const { state, calls } = build()
+  try {
+    expect(await languages.use(`ru`)).toBe(true)
+    await state.openItem(null)
+    const size = {
+      id: `s1`,
+      label: `M`,
+      heightMin: `160`,
+      heightMax: ``,
+      weightMin: ``,
+      weightMax: ``,
+    }
+    state.editItem({
+      ...state.itemEditor.value.value,
+      slug: `ao`,
+      price: 1,
+      name: { vi: `Áo` },
+      sizes: [size],
+    })
+    expect(await state.saveItem()).toBeNull()
+    expect(state.itemEditor.value.errors).toEqual({
+      "size:s1": `Укажите оба края роста или ни одного.`,
+    })
+
+    await state.load()
+    state.openSource(null)
+    state.editSource({ name: `Zalo`, slug: `Zalo A`, slugEdited: true })
+    calls.length = 0
+    expect(await state.saveSource()).toBe(false)
+    expect(state.sourceEditor.value.errors).toEqual({
+      slug: `Используйте только строчные латинские буквы, цифры и дефисы.`,
+    })
+    expect(calls).toEqual([])
+  } finally {
+    await languages.use(`en`)
+  }
 })

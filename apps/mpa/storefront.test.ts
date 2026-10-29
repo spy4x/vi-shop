@@ -75,7 +75,7 @@ function shop(
     // deno-lint-ignore no-explicit-any
     .appWrapper(AppWrapper as any)
     .route(`/`, view(home))
-    .route(`/en/`, view(homeEn))
+    .route(`/en`, view(homeEn))
     .route(`/danh-sach`, view(list))
     .route(`/dat-hang`, view(order))
     .route(`/hoi-dap`, view({ default: Faq }))
@@ -125,18 +125,24 @@ describe(`the home page`, () => {
     expect(looks(body)).toEqual(SAMPLE_ITEMS.map((each) => each.slug))
   })
 
-  it(`is in English at /en/, and each language names the other with hreflang`, async () => {
+  it(`is in English at /en, and each language names the other with hreflang`, async () => {
     const vi = await get(`/`)
-    const en = await get(`/en/`)
+    const en = await get(`/en`)
 
     expect(en.body).toContain(`<html lang="en"`)
     expect(en.body).toContain(`Dress to move.`)
     for (const body of [vi.body, en.body]) {
       expect(body).toContain(`<link rel="alternate" hreflang="vi" href="${site}/"`)
-      expect(body).toContain(`<link rel="alternate" hreflang="en" href="${site}/en/"`)
+      expect(body).toContain(`<link rel="alternate" hreflang="en" href="${site}/en"`)
       expect(body).toContain(`<link rel="alternate" hreflang="x-default" href="${site}/"`)
     }
-    expect(vi.body).toMatch(/href="\/en\/"[^>]*data-e2e="language-switch"/)
+    expect(vi.body).toMatch(/href="\/en"[^>]*data-e2e="language-switch"/)
+  })
+
+  it(`sends an old /en/ link to /en, keeping the query`, async () => {
+    const response = await get(`/en/?a=1`)
+    expect(response.status).toBe(301)
+    expect(response.headers.get(`location`)).toBe(`/en?a=1`)
   })
 
   it(`says tomorrow after 16:00 Vietnam time`, async () => {

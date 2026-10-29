@@ -1,3 +1,6 @@
+// The shop's own Vietnamese words: Seed's `site` catalog has no Vietnamese, and the
+// storefront keeps its words in `shop/words.ts` (AGENTS.md, "Languages").
+// deno-lint-ignore-file ui-text/no-literal
 import { type FreshContext, HttpError } from "fresh"
 import { Button } from "@spy4x/preact-ui/button"
 import { SiteFrame } from "./site.tsx"

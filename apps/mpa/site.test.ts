@@ -74,7 +74,7 @@ describe("the shop's website", () => {
     expect(urls).toEqual([
       `${site}/`,
       `${site}/hoi-dap`,
-      `${site}/en/`,
+      `${site}/en`,
       `${site}/en/faq`,
       `${site}/privacy`,
       `${site}/terms`,

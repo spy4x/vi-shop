@@ -32,12 +32,16 @@ import {
   type CatalogPhotosState,
   sameCatalogItemDraft,
 } from "@ui/admin-catalog-item.tsx"
-import { type AdminFetch, post } from "../../state.ts"
+import { type AdminFetch, post, refusalText } from "../../state.ts"
 import { adminText } from "../../i18n.ts"
 
 const API = `/api/admin/catalog`
 
-/** How many times an open item is read again while a photo is being prepared: a minute's worth. */
+/**
+ * How many times an open item is read again while a photo is being prepared and none becomes
+ * ready: a minute's worth. A photo that becomes ready starts the count again, so a large batch is
+ * followed to its last photo (#514).
+ */
 export const CATALOG_PREPARING_READS = 30
 
 /** The item editor: which item it has open (`null` for a new one) and what its fields hold. */
@@ -144,6 +148,9 @@ export function createCatalogState(
     const field = (result.error.details as { field?: string } | undefined)?.field
     return { [field ?? `form`]: result.error.message }
   }
+  /** A check's refusal before any request, in the operator's language. */
+  const parseRefusal = (refusal: CatalogError) =>
+    refusalText({ message: refusal.message, fields: refusal.fields })
   /** Applies `patch` to the item editor when it still has `id` open. */
   const patchItem = (id: string | null, patch: Partial<CatalogItemEditorState>) => {
     if (itemEditor.value.id === id) itemEditor.value = { ...itemEditor.value, ...patch }
@@ -248,7 +255,11 @@ export function createCatalogState(
       const preparing = item?.photos.some((photo) => photo.state === `preparing`)
       if (id === null || !preparing || preparingReads >= CATALOG_PREPARING_READS) return false
       preparingReads++
+      const waiting = (photos?: readonly CatalogPhoto[]) =>
+        photos?.filter((photo) => photo.state === `preparing`).length ?? 0
+      const before = waiting(item?.photos)
       await state.readItem(id)
+      if (waiting(itemEditor.value.item?.photos) < before) preparingReads = 0
       return true
     },
 
@@ -268,7 +279,12 @@ export function createCatalogState(
       if (open.saving) return null
       const checked = catalogItemFields(open.value, languages())
       if (!checked.ok) {
-        itemEditor.value = { ...open, errors: { [checked.field]: checked.message } }
+        itemEditor.value = {
+          ...open,
+          errors: {
+            [checked.field]: refusalText({ message: checked.message, fields: checked.failed }),
+          },
+        }
         return null
       }
       itemEditor.value = { ...open, errors: {}, saving: true }
@@ -370,12 +386,20 @@ export function createCatalogState(
       for (const file of files) {
         const type = catalogPhotoContentType(file)
         if (!(CATALOG_PHOTO_TYPES as readonly string[]).includes(type)) {
-          problems.push(`${file.name} is not a JPEG, PNG, WebP or HEIC photo.`)
+          problems.push(adminText().t(`AdminCatalogItem.photoWrongType`, { file: file.name }))
         } else if (file.size > CATALOG_PHOTO_MAX_BYTES) {
-          problems.push(`${file.name} is larger than ${CATALOG_PHOTO_MAX_BYTES / 1024 / 1024} MB.`)
+          problems.push(
+            adminText().t(`AdminCatalogItem.photoTooLarge`, {
+              file: file.name,
+              size: CATALOG_PHOTO_MAX_BYTES / 1024 / 1024,
+            }),
+          )
         } else if (take.length >= room) {
           problems.push(
-            `${file.name} was left out: an item keeps ${CATALOG_PHOTOS_MAX} photos at most.`,
+            adminText().t(`AdminCatalogItem.photoLeftOut`, {
+              file: file.name,
+              count: CATALOG_PHOTOS_MAX,
+            }),
           )
         } else take.push(file)
       }
@@ -486,7 +510,10 @@ export function createCatalogState(
         parseCatalogCategoryFields(body, languages())
       } catch (refusal) {
         if (!(refusal instanceof CatalogError)) throw refusal
-        categoryEditor.value = { ...open, errors: { [refusal.field ?? `form`]: refusal.message } }
+        categoryEditor.value = {
+          ...open,
+          errors: { [refusal.field ?? `form`]: parseRefusal(refusal) },
+        }
         return false
       }
       categoryEditor.value = { ...open, errors: {}, saving: true }
@@ -583,7 +610,10 @@ export function createCatalogState(
         parseCatalogSourceFields(body)
       } catch (refusal) {
         if (!(refusal instanceof CatalogError)) throw refusal
-        sourceEditor.value = { ...open, errors: { [refusal.field ?? `form`]: refusal.message } }
+        sourceEditor.value = {
+          ...open,
+          errors: { [refusal.field ?? `form`]: parseRefusal(refusal) },
+        }
         return false
       }
       sourceEditor.value = { ...open, errors: {}, saving: true }

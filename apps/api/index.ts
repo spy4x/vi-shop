@@ -78,7 +78,8 @@ import { isCacheConnected, kv } from "./services/cache.ts"
 import { files } from "./services/files.ts"
 import { s3ServerFiles } from "@server/files/files.ts"
 import { readCatalogSetup } from "@server/catalog/setup.ts"
-import { createUmamiLinks, readTrackingSetup } from "@server/catalog/tracking.ts"
+import { createUmamiLinks, DEFAULT_ITEM_PATH, readTrackingSetup } from "@server/catalog/tracking.ts"
+import { readWebsiteStatsSetup } from "./services/website-stats.ts"
 import { createPublicCatalogReads, createPublicCatalogRoute } from "./routes/catalog.ts"
 import { createRedisRateLimitStore } from "@spy4x/server/kv"
 import { enqueuePasswordResetMail } from "@server/jobs/password-reset-mail.ts"
@@ -96,6 +97,7 @@ import { DEFAULT_PROXY_HOSTS } from "./middlewares/proxy-peer.ts"
 import { createProxyPeers } from "@spy4x/server/http/trusted-proxy"
 import {
   enqueueSubscriberMail,
+  rememberSubscriberLanguage,
   SUBSCRIBER_CONFIRM_MAIL_JOB,
   SUBSCRIBER_WELCOME_MAIL_JOB,
 } from "@server/jobs/subscriber-mail.ts"
@@ -194,8 +196,8 @@ app.route(
     totpFailures: createTotpFailures({ sql }),
     passwordFailures: createPasswordFailures({ sql }),
     requestPasswordReset: (email) => enqueuePasswordResetMail(sql, email),
-    requestSignInLink: (email, next, requestedBy) =>
-      enqueueSignInLinkMail(sql, email, next, requestedBy),
+    requestSignInLink: (email, next, requestedBy, language) =>
+      enqueueSignInLinkMail(sql, email, next, requestedBy, language),
     emailCodeFailures: createEmailCodeFailures({ sql }),
     requestEmailCode: (userId, email) => enqueueEmailCodeMail(sql, userId, email),
   }),
@@ -269,6 +271,12 @@ const siteUrl = readSiteUrl(Deno.env, config.isDev ? "dev" : "prod")
 const catalogSwitch = readCatalogSetup(Deno.env)
 const trackingSetup = catalogSwitch.on ? readTrackingSetup(Deno.env, siteUrl) : null
 const catalogSetup = { ...catalogSwitch, tracking: trackingSetup }
+// Stats (#485): the website's numbers from Umami, off until its three settings are set.
+const websiteStats = {
+  ...readWebsiteStatsSetup(Deno.env),
+  itemPath: trackingSetup?.itemPath ??
+    (Deno.env.get("CATALOG_ITEM_PATH")?.trim() || DEFAULT_ITEM_PATH),
+}
 const serverFiles = s3ServerFiles(config.files)
 // The operator area (#146) and its modules (#424). The gate answers 404 to anyone below operator.
 app.route(
@@ -293,6 +301,7 @@ app.route(
       billing: billingSetup,
       catalog: catalogSetup,
       files: serverFiles,
+      websiteStats,
     }).concat(
       createAdminOwnPreferencesRoute({
         limit: rateLimits.normal,
@@ -512,10 +521,12 @@ app.route(
         ? await createRecipientLimitKey(subscribersSetup)
         : () => Promise.reject(new Error("subscriptions are off")),
     }),
-    requestConfirmMail: (list, email) =>
-      enqueueSubscriberMail(sql, SUBSCRIBER_CONFIRM_MAIL_JOB, list, email),
-    requestWelcomeMail: (list, email) =>
-      enqueueSubscriberMail(sql, SUBSCRIBER_WELCOME_MAIL_JOB, list, email),
+    requestConfirmMail: (list, email, language) =>
+      enqueueSubscriberMail(sql, SUBSCRIBER_CONFIRM_MAIL_JOB, list, email, language),
+    requestWelcomeMail: (list, email, language) =>
+      enqueueSubscriberMail(sql, SUBSCRIBER_WELCOME_MAIL_JOB, list, email, language),
+    rememberLanguage: (list, email, language) =>
+      rememberSubscriberLanguage(sql, list, email, language),
     log: console,
   }),
 )

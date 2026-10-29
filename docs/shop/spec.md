@@ -103,9 +103,9 @@ WebP for `srcset`.
 From the first deploy:
 
 - **Server-rendered pages that work without JavaScript**, as every Seed website page does.
-- **Two languages with their own URLs:** Vietnamese at `/`, English at `/en/`, `hreflang` between
+- **Two languages with their own URLs:** Vietnamese at `/`, English at `/en`, `hreflang` between
   them and `x-default` to Vietnamese. Slugs are Vietnamese without diacritics
-  (`/ao-khoac/ao-khoac-zip-nau`), the same item and category slug under `/en/`. Fixed pages have their own English paths (`/en/list`, `/en/faq`).
+  (`/ao-khoac/ao-khoac-zip-nau`), the same item and category slug under `/en`. Fixed pages have their own English paths (`/en/list`, `/en/faq`).
 - **Structured data:** `ClothingStore` with social profiles as `sameAs` and the Zalo number as `telephone`; on each item `Product`
   with `Offer` (`priceCurrency: VND`, availability from the sold-out colour and size pairs), `color`, `size`,
   `material` and every image; `BreadcrumbList`; `ItemList` on category pages; `FAQPage` on the
@@ -142,7 +142,7 @@ Reusable work is done in Seed and the libraries first; the shop takes it with a 
 | --- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
 | 1   | vi-shop                                                  | Product setup: brand, Seed's own site removed, apps switched off, CI, deploy, domain.    |
 | 2   | Seed                                                     | Image processing for uploads: metadata stripped, HEIC converted, AVIF and WebP widths.   |
-| 3   | Seed ([#276](https://github.com/spy4x/seed/issues/276)) | The website in several languages, with a per-product default (Vietnamese at `/`, English at `/en/`).                                  |
+| 3   | Seed ([#276](https://github.com/spy4x/seed/issues/276)) | The website in several languages, with a per-product default (Vietnamese at `/`, English at `/en`).                                  |
 | 4   | Seed                                                     | Contact links: a site setting edited in the admin panel.                                 |
 | 5   | preact-components                                        | Storefront patterns in the design language: the look tile, colour swatches, order bar.   |
 | 6   | Seed                                                     | Catalog module: categories, items, colours, sizes with height and weight ranges, photos; admin screens; public pages. |

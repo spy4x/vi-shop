@@ -1,3 +1,6 @@
+// The shop's own Vietnamese words: Seed's `site` catalog has no Vietnamese, and the
+// storefront keeps its words in `shop/words.ts` (AGENTS.md, "Languages").
+// deno-lint-ignore-file ui-text/no-literal
 import { LegalPage, REPOSITORY_URL, SITE_NAME } from "../site.tsx"
 import { define } from "../utils.ts"
 

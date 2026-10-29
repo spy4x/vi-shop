@@ -13,6 +13,7 @@ import { render, type VNode } from "preact"
 import { act } from "preact/test-utils"
 import { AuthScreen, type AuthScreenProps } from "./auth-screen.tsx"
 import { FORM_ACTIONS } from "./progressive.tsx"
+import { siteEnglishText } from "./site-text.ts"
 import {
   ForgotPasswordScreen,
   type ForgotPasswordScreenProps,
@@ -301,13 +302,14 @@ describe("SubscribeForm in the browser", () => {
     expect(send.calls).toHaveLength(1)
   })
 
-  it("posts the address and the list natively when the app takes nothing over", async () => {
-    await mount(<SubscribeForm {...subscribeDefaults} email="ada@example.com" />)
+  it("posts the address, the list and the page's language natively when the app takes nothing over", async () => {
+    await mount(<SubscribeForm {...subscribeDefaults} email="ada@example.com" language="de" />)
 
     const form = find<HTMLFormElement>(`form[action="${FORM_ACTIONS.subscribe}"]`)
     expect(Object.fromEntries(new FormData(form))).toEqual({
       list: "news",
       email: "ada@example.com",
+      language: "de",
     })
     expect(await submit(`form[action="${FORM_ACTIONS.subscribe}"]`)).toBe(false)
   })
@@ -358,12 +360,12 @@ describe("SubscriptionConfirmScreen in the browser", () => {
     expect(confirm.calls).toHaveLength(1)
   })
 
-  it("posts the link's list and token natively when the app takes nothing over", async () => {
-    await mount(<SubscriptionConfirmScreen {...confirmDefaults} />)
+  it("posts the link's list and token and the page's language natively when the app takes nothing over", async () => {
+    await mount(<SubscriptionConfirmScreen {...confirmDefaults} language="en" />)
 
     const form = find<HTMLFormElement>(`form[action="${FORM_ACTIONS.subscribeConfirm}"]`)
     expect(Object.fromEntries(new FormData(form)))
-      .toEqual({ list: "news", token: "token-from-the-link" })
+      .toEqual({ list: "news", token: "token-from-the-link", language: "en" })
     expect(await submit(`form[action="${FORM_ACTIONS.subscribeConfirm}"]`)).toBe(false)
   })
 
@@ -374,7 +376,7 @@ describe("SubscriptionConfirmScreen in the browser", () => {
     await rerender(<SubscriptionConfirmScreen {...confirmDefaults} state="error" />)
 
     expect(find("[data-e2e=subscription-confirm-error]").textContent)
-      .toBe(SUBSCRIBE_FAILURES.confirm)
+      .toBe(siteEnglishText().t(SUBSCRIBE_FAILURES.confirm))
     expect(focused()).toBe("subscription-confirm-error")
   })
 
@@ -420,7 +422,9 @@ describe("UnsubscribeScreen in the browser", () => {
 
     await rerender(<UnsubscribeScreen {...unsubscribeDefaults} state="error" />)
 
-    expect(find("[data-e2e=unsubscribe-error]").textContent).toBe(SUBSCRIBE_FAILURES.unsubscribe)
+    expect(find("[data-e2e=unsubscribe-error]").textContent).toBe(
+      siteEnglishText().t(SUBSCRIBE_FAILURES.unsubscribe),
+    )
     expect(focused()).toBe("unsubscribe-error")
   })
 
