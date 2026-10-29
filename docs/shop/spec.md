@@ -155,6 +155,8 @@ conflicts in one of these keeps the shop's lines.
 | `libs/server/jobs/subscriber-mail.ts` | The confirm and welcome mails take their words from `subscriberMailText`, not `translatorFor` (the import and two calls). |
 | `libs/server/jobs/subscriber-issue.ts` | An issue's footer and unsubscribe label, the same way (the import and one call). |
 | `libs/server/blog/blog-publish-job.ts` | A post's issue button, the same way (the import and one call). |
+| `apps/mpa/middleware.ts` | The shop's sign-up page (`/nhan-tin`) joins Seed's newsletter pages in the `no-store` list, because its sent page repeats the typed address. |
+| `libs/ui/subscribe-screen.tsx` | The outcome card's sentence has `autofocus`, so a confirm or unsubscribe result page that the server renders opens with focus on the result. Worth sending to Seed. |
 | `tests/integration/subscribers.integration.test.ts`, `tests/integration/blog.integration.test.ts`, `e2e/subscribers.e2e.ts`, `e2e/admin-newsletter.e2e.ts` | Expect the Vietnamese subject or button of a main-language mail. |
 
 ## Done when
