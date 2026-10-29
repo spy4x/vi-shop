@@ -54,7 +54,7 @@ export default define.page(function Privacy({ state }) {
       <h2 id="newsletter">Đăng ký nhận tin</h2>
       <p>
         Nếu bạn đăng ký nhận tin, chúng tôi lưu email của bạn cho đến khi bạn hủy đăng ký, và chỉ
-        dùng nó để gửi tin mẫu mới.
+        dùng nó để gửi tin mẫu mới và bài viết mới.
       </p>
       <h2 id="not">Những điều chúng tôi không làm</h2>
       <p>
@@ -69,7 +69,7 @@ export default define.page(function Privacy({ state }) {
         In English: this website has no accounts, sets no cookies and shows no ads. Orders happen in
         your own Telegram or Zalo chat with the shop. Server logs with your IP address are kept for
         a short time to run the site, then deleted automatically. If you subscribe, we keep your
-        email address until you unsubscribe, and use it only to send new pieces.
+        email address until you unsubscribe, and use it only to send new pieces and new posts.
       </p>
     </LegalPage>
   )

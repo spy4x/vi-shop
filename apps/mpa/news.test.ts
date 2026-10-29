@@ -224,6 +224,13 @@ describe(`the Blog link and the footer sign-up`, () => {
     expect(body).not.toContain(`/nhan-tin`)
   })
 
+  it(`promise new pieces and new posts, in the footer and on /nhan-tin`, async () => {
+    const promise = `Một email ngắn khi có mẫu mới và bài viết mới, hoặc khi món đã hết có lại.`
+
+    expect((await shop().fetch(`/`)).body).toMatch(new RegExp(`<footer.*${promise}`, `s`))
+    expect((await shop().fetch(`/nhan-tin`)).body).toContain(promise)
+  })
+
   it(`hide the sign-up while the newsletter is off`, async () => {
     const { body } = await shop({ newsletter: false }).fetch(`/`)
 
@@ -384,7 +391,7 @@ describe(`the mailed links`, () => {
 
     expect(status).toBe(200)
     expect(body).toContain(`data-e2e="shop-frame"`)
-    expect(body).toContain(`Gửi tin mẫu mới đến an@example.com?`)
+    expect(body).toContain(`Gửi tin mẫu mới và bài viết mới đến an@example.com?`)
     expect(body).toMatch(NOINDEX)
     expect(headers.get(`cache-control`)).toBe(`no-store`)
     expect(headers.get(`referrer-policy`)).toBe(`no-referrer`)
@@ -404,7 +411,7 @@ describe(`the mailed links`, () => {
   it(`unsubscribe in Vietnamese, then offer to sign up again at /nhan-tin`, async () => {
     const { fetch } = shop()
     const asked = await fetch(`/unsubscribe?list=news&token=token-1`)
-    expect(asked.body).toContain(`Ngừng gửi tin mẫu mới đến an@example.com?`)
+    expect(asked.body).toContain(`Ngừng gửi tin mẫu mới và bài viết mới đến an@example.com?`)
     expect(asked.headers.get(`cache-control`)).toBe(`no-store`)
 
     const { body } = await fetch(`/unsubscribe?state=done`)
@@ -444,5 +451,7 @@ describe(`the privacy page`, () => {
     expect(body).toContain(`không gửi email nào bạn không đăng`)
     expect(body).not.toContain(`không gửi email quảng cáo`)
     expect(body).toContain(`If you subscribe, we keep your`)
+    expect(body).toContain(`dùng nó để gửi tin mẫu mới và bài viết mới.`)
+    expect(body).toContain(`use it only to send new pieces and new posts.`)
   })
 })

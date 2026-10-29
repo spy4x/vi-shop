@@ -401,8 +401,8 @@ export const NEWS_WORDS = {
   allPosts: `Tất cả bài viết`,
   postNotFound: `Không tìm thấy bài viết này.`,
   signupHeading: `Mẫu mới qua email`,
-  signupValue: `Một email ngắn khi có mẫu mới hoặc khi món đã hết có lại. Nhiều nhất mỗi tuần ` +
-    `một lần, không gửi gì khác.`,
+  signupValue: `Một email ngắn khi có mẫu mới và bài viết mới, hoặc khi món đã hết có lại. ` +
+    `Nhiều nhất mỗi tuần một lần, không gửi gì khác.`,
   signupTitle: `Đăng ký nhận tin`,
   email: `Email`,
   hint: `Bạn xác nhận qua email trước. Mỗi email đều có link hủy đăng ký.`,
@@ -424,8 +424,8 @@ export const NEWS_WORDS = {
    */
   screens: {
     "SubscriptionConfirm.title": `Xác nhận đăng ký`,
-    "SubscriptionConfirm.question": `Gửi tin mẫu mới đến {email}?`,
-    "SubscriptionConfirm.questionNoEmail": `Gửi tin mẫu mới đến email của bạn?`,
+    "SubscriptionConfirm.question": `Gửi tin mẫu mới và bài viết mới đến {email}?`,
+    "SubscriptionConfirm.questionNoEmail": `Gửi tin mẫu mới và bài viết mới đến email của bạn?`,
     "SubscriptionConfirm.submit": `Xác nhận`,
     "SubscriptionConfirm.confirming": `Đang xác nhận…`,
     "SubscriptionConfirm.doneTitle": `Bạn đã đăng ký nhận tin`,
@@ -441,8 +441,8 @@ export const NEWS_WORDS = {
     "SubscribeFailure.confirm": `Chưa xác nhận được. Thử lại sau một phút nhé.`,
     "SubscribeFailure.unsubscribe": `Chưa hủy được. Thử lại sau một phút nhé.`,
     "Unsubscribe.title": `Hủy đăng ký`,
-    "Unsubscribe.question": `Ngừng gửi tin mẫu mới đến {email}?`,
-    "Unsubscribe.questionNoEmail": `Ngừng gửi tin mẫu mới đến email của bạn?`,
+    "Unsubscribe.question": `Ngừng gửi tin mẫu mới và bài viết mới đến {email}?`,
+    "Unsubscribe.questionNoEmail": `Ngừng gửi tin mẫu mới và bài viết mới đến email của bạn?`,
     "Unsubscribe.submit": `Hủy đăng ký`,
     "Unsubscribe.unsubscribing": `Đang hủy…`,
     "Unsubscribe.doneTitle": `Bạn đã hủy đăng ký`,

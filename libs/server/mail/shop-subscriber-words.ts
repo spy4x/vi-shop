@@ -19,16 +19,17 @@ import { translatorFor } from "./mail.ts"
 /** The Vietnamese of each subscriber mail key, the UX writer's copy (issue #16). */
 export const SUBSCRIBER_MAIL_VI = {
   "SubscriberConfirmMail.subject": `Xác nhận nhận tin từ Vi shop`,
-  "SubscriberConfirmMail.asked": `Có người vừa đăng ký nhận tin mẫu mới của Vi shop bằng địa ` +
-    `chỉ này. Nếu là bạn, bấm nút bên dưới để xác nhận.`,
+  "SubscriberConfirmMail.asked": `Có người vừa đăng ký nhận tin mẫu mới và bài viết mới của ` +
+    `Vi shop bằng địa chỉ này. Nếu là bạn, bấm nút bên dưới để xác nhận.`,
   "SubscriberConfirmMail.within": `Link dùng được trong 3 ngày. Sau khi xác nhận, shop gửi ` +
-    `email khi có mẫu mới hoặc khi món đã hết có lại, nhiều nhất mỗi tuần một lần.`,
+    `email khi có mẫu mới và bài viết mới, hoặc khi món đã hết có lại, nhiều nhất mỗi tuần ` +
+    `một lần.`,
   "SubscriberConfirmMail.button": `Xác nhận đăng ký`,
   "SubscriberConfirmMail.ignore":
     `Nếu bạn không đăng ký, cứ bỏ qua email này. Shop sẽ không gửi gì thêm.`,
   "SubscriberWelcomeMail.subject": `Bạn đã đăng ký nhận tin Vi shop`,
-  "SubscriberWelcomeMail.subscribed": `Cảm ơn bạn. Email tiếp theo đến khi có mẫu mới hoặc khi ` +
-    `món đã hết có lại, nhiều nhất mỗi tuần một lần. Muốn hỏi size hay đặt hàng, cứ nhắn shop ` +
+  "SubscriberWelcomeMail.subscribed": `Cảm ơn bạn. Email tiếp theo đến khi có mẫu mới và bài ` +
+    `viết mới, hoặc khi món đã hết có lại, nhiều nhất mỗi tuần một lần. Muốn hỏi size hay đặt hàng, cứ nhắn shop ` +
     `qua Telegram hoặc Zalo.`,
   "SubscriberWelcomeMail.reason": `Bạn nhận email này vì đã đăng ký ở {host}.`,
   "SubscriberWelcomeMail.unsubscribe": `Hủy đăng ký`,

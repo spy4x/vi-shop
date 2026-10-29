@@ -16,8 +16,9 @@ describe(`the shop's subscriber mails`, () => {
     })
 
     expect(mail.subject).toBe(`Xác nhận nhận tin từ Vi shop`)
-    expect(mail.text).toContain(`Có người vừa đăng ký nhận tin mẫu mới của Vi shop`)
+    expect(mail.text).toContain(`Có người vừa đăng ký nhận tin mẫu mới và bài viết mới của Vi shop`)
     expect(mail.text).toContain(`Link dùng được trong 3 ngày.`)
+    expect(mail.text).toContain(`shop gửi email khi có mẫu mới và bài viết mới, hoặc khi món`)
     expect(mail.html).toContain(`Xác nhận đăng ký`)
     expect(mail.text).toContain(`Nếu bạn không đăng ký, cứ bỏ qua email này.`)
     expect(mail.text).not.toContain(`Confirm`)
@@ -31,7 +32,9 @@ describe(`the shop's subscriber mails`, () => {
     })
 
     expect(mail.subject).toBe(`Bạn đã đăng ký nhận tin Vi shop`)
-    expect(mail.text).toContain(`Cảm ơn bạn. Email tiếp theo đến khi có mẫu mới`)
+    expect(mail.text).toContain(
+      `Cảm ơn bạn. Email tiếp theo đến khi có mẫu mới và bài viết mới, hoặc khi món`,
+    )
     expect(mail.text).toContain(`Bạn nhận email này vì đã đăng ký ở vi-shop.example.com.`)
     expect(mail.html).toContain(`Hủy đăng ký`)
     expect(mail.text).not.toContain(`Unsubscribe`)
