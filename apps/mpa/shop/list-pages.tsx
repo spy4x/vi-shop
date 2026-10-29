@@ -61,7 +61,7 @@ function FilterScript() {
 }
 
 /**
- * The home page (`/`, `/en/`): the headline, the delivery promise and the newest looks with the
+ * The home page (`/`, `/en`): the headline, the delivery promise and the newest looks with the
  * size row. Its structured data is the site, the store and the list.
  */
 export function homeRoute(lang: Lang) {

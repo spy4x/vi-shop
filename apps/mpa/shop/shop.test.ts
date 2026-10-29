@@ -13,7 +13,7 @@ const [, m, l] = jacket.sizes
 
 describe(`the language switch`, () => {
   it(`lands on the same page in the other language`, () => {
-    expect(twinPath(`/`)).toBe(`/en/`)
+    expect(twinPath(`/`)).toBe(`/en`)
     expect(twinPath(`/en/`)).toBe(`/`)
     expect(twinPath(`/en`)).toBe(`/`)
     expect(twinPath(`/ao-khoac/ao-khoac-zip-nau`)).toBe(`/en/ao-khoac/ao-khoac-zip-nau`)

@@ -63,7 +63,7 @@ design language first, as a "Storefront" section, then used here.
 Every screen is drawn at 390 px and 1440 px, in the light and dark palettes, with its empty,
 loading-free (server-rendered), error and long-text states. All of them work without JavaScript.
 
-### Home (`/`, `/en/`)
+### Home (`/`, `/en`)
 
 The newest looks, full size, with the brand's headline over the first one.
 
