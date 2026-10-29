@@ -47,8 +47,9 @@ The website is the storefront, in `apps/mpa`:
   import no server code and only types from `@domain/catalog`.
 - `islands/item-view.tsx`: the item page's photos, colour and size choice and order bar.
 - Routes: Vietnamese at `/`, `/<category>`, `/<category>/<item>`, `/danh-sach` (the order list),
-  `/dat-hang` (the order step) and `/hoi-dap` (FAQ); English under `/en/` with `/en/list`,
-  `/en/order` and `/en/faq`. `/anh/<photo id>/<file>` passes the catalog's photos through from the
+  `/dat-hang` (the order step), `/hoi-dap` (FAQ), and the Vietnamese-only blog (`/bai-viet`) and
+  newsletter sign-up (`/nhan-tin`); English under `/en/` with `/en/list`, `/en/order` and
+  `/en/faq`. `/anh/<photo id>/<file>` passes the catalog's photos through from the
   API, since the website's host does not route `/api`.
 - `lighthouse/sample-shop.ts` and `lighthouse/photos/` are the sample shop that the Lighthouse run
   and the tests use; `lighthouse/shop-api.ts` serves it.

@@ -65,6 +65,8 @@ seller runs it from the admin panel without a developer.
 7. Read the FAQ: how ordering, payment, delivery, exchanges and sizing work.
 8. Switch between Vietnamese and English on any page, landing on the same page in the other
    language.
+9. Read the blog and sign up for the newsletter, both in Vietnamese only ("The blog and the
+   newsletter" below).
 
 ## What the seller can do (admin panel)
 
@@ -120,6 +122,40 @@ From the first deploy:
   Lighthouse mobile at least 95 for performance and 100 for the rest, checked in CI as in Seed.
 - **Open Graph:** each item's cover photo is its share image, so a link pasted into Zalo,
   Telegram or Facebook shows the item.
+
+## The blog and the newsletter
+
+The owner keeps both Vietnamese only for now (2026-10-29, issue #16: "Keep blog and newsletter
+simple for now, only Vietnamese"). English pages show neither the Blog link nor the sign-up.
+
+- **Blog:** `/bai-viet` and `/bai-viet/<slug>` (`apps/mpa/shop/blog-pages.tsx`), from Seed's
+  public blog API. Operators write posts in the admin panel under Seed's main language code
+  (English); the shop reads that code as Vietnamese, and a post in any other language is not shown.
+  A post's page lists every catalog item its body links to under "Món trong bài", with live prices
+  and sizes. Seed's own addresses, `/blog` and `/blog/<slug>`, which a newsletter issue's button
+  and the admin link to, answer 301 to the shop's.
+- **Sign-up:** a plain form in the Vietnamese footer and at the end of each post, posting to
+  `/nhan-tin` (`apps/mpa/shop/newsletter-pages.tsx`), which draws every outcome on the server.
+  A new address and one already on the list read the same.
+- **Mailed links:** the confirm and unsubscribe pages stay at Seed's addresses,
+  `/subscribe/confirm` and `/unsubscribe`, so Seed's link builders need no change. They show Seed's
+  screens inside the shop's frame, in the shop's Vietnamese (`NEWS_WORDS.screens` in
+  `apps/mpa/shop/words.ts`).
+- **Words:** the shop's own, in `NEWS_WORDS`; nothing goes into Seed's catalogs and Vietnamese is
+  not one of Seed's languages.
+
+### What the shop changed in Seed's files
+
+So a sync from Seed keeps working, the shop changes as few of Seed's files as it can. A sync that
+conflicts in one of these keeps the shop's lines.
+
+| File | Change |
+| ---- | ------ |
+| `libs/server/mail/shop-subscriber-words.ts` | The shop's own file: the Vietnamese of the subscriber mails for the main language. |
+| `libs/server/jobs/subscriber-mail.ts` | The confirm and welcome mails take their words from `subscriberMailText`, not `translatorFor` (the import and two calls). |
+| `libs/server/jobs/subscriber-issue.ts` | An issue's footer and unsubscribe label, the same way (the import and one call). |
+| `libs/server/blog/blog-publish-job.ts` | A post's issue button, the same way (the import and one call). |
+| `tests/integration/subscribers.integration.test.ts`, `tests/integration/blog.integration.test.ts`, `e2e/subscribers.e2e.ts`, `e2e/admin-newsletter.e2e.ts` | Expect the Vietnamese subject or button of a main-language mail. |
 
 ## Done when
 
