@@ -6,6 +6,7 @@ import { createNewsletterStatus } from "./newsletter.ts"
 import { define, type State } from "./utils.ts"
 import { HttpError, staticFiles } from "fresh"
 import { FORM_ACTIONS } from "@ui/progressive.tsx"
+import { NEWS_PATHS } from "./shop/lang.ts"
 import { HTTPException } from "hono/http-exception"
 import { createSameOriginCheck } from "@spy4x/server/http/same-origin"
 import {
@@ -177,7 +178,8 @@ function remoteAddress(info: Deno.ServeHandlerInfo): string {
 /** The methods a trailing slash is redirected for: a 301 would turn a `POST` into a `GET`. */
 const READS = [`GET`, `HEAD`]
 
-const NEWSLETTER_PATHS: string[] = Object.values(FORM_ACTIONS)
+// The shop's sign-up page repeats the typed address, so it is never stored either.
+const NEWSLETTER_PATHS: string[] = [...Object.values(FORM_ACTIONS), NEWS_PATHS.signup]
 
 function withPageHeaders(response: Response, pathname: string): Response {
   const headers = new Headers(response.headers)

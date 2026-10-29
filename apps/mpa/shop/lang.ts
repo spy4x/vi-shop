@@ -48,3 +48,14 @@ export function twinPath(path: string): string {
   if (path === `/en`) return `/`
   return langOf(path) === `en` ? path.slice(3) : `/en${path}`
 }
+
+/**
+ * The blog and the newsletter's sign-up, in Vietnamese only (issue #16): the index and each post
+ * under `/bai-viet`, and every sign-up outcome at `/nhan-tin`. Neither has an English twin.
+ */
+export const NEWS_PATHS = { blog: `/bai-viet`, signup: `/nhan-tin` } as const
+
+/** A post's page, such as `/bai-viet/chon-size-ao-khoac`. */
+export function storyPath(slug: string): string {
+  return `${NEWS_PATHS.blog}/${slug}`
+}

@@ -16,7 +16,8 @@ import {
   type SubscribersSetup,
   subscriberUnsubscribeLink,
 } from "../subscribers/subscribers.ts"
-import { type MailBrand, translatorFor } from "../mail/mail.ts"
+import type { MailBrand } from "../mail/mail.ts"
+import { subscriberMailText } from "../mail/shop-subscriber-words.ts"
 import { enqueueJob, type JobHandler } from "./jobs.ts"
 import { uuidV7 } from "@spy4x/platform/universal/uuid"
 
@@ -285,7 +286,7 @@ export function subscriberConfirmMail(
   { to, link, language }: { to: string; link: string; language: Language },
 ): EmailMessage {
   const host = new URL(brand.webAppUrl).host
-  const t = translatorFor(language)
+  const t = subscriberMailText(language)
   const letter = renderLetter({
     blocks: [
       paragraph(t.t(`SubscriberConfirmMail.asked`, { host })),
@@ -306,7 +307,7 @@ export function subscriberWelcomeMail(
   { to, unsubscribeLink, language }: { to: string; unsubscribeLink: string; language: Language },
 ): EmailMessage {
   const host = new URL(brand.webAppUrl).host
-  const t = translatorFor(language)
+  const t = subscriberMailText(language)
   const letter = renderLetter({
     blocks: [paragraph(t.t(`SubscriberWelcomeMail.subscribed`, { host }))],
     footer: {

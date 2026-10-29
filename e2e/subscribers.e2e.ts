@@ -28,7 +28,7 @@ test("a visitor subscribes, confirms through the mailed link and unsubscribes fr
   await page.locator("[data-e2e=subscribe-submit]").click()
   await expect(page.locator("[data-e2e=subscribe-sent]")).toBeVisible()
 
-  const confirmLink = await mailedLink(request, email, "Confirm your subscription")
+  const confirmLink = await mailedLink(request, email, "Xác nhận nhận tin từ Vi shop")
   expect(confirmLink).toMatch(/^\/subscribe\/confirm\?/)
   await gotoApp(page, confirmLink, page.locator("[data-e2e=subscription-confirm-submit]"))
   await expect(page.locator("meta[name=referrer]")).toHaveAttribute("content", "no-referrer")
@@ -38,7 +38,7 @@ test("a visitor subscribes, confirms through the mailed link and unsubscribes fr
   // The token leaves the address bar once it is spent.
   await expect(page).toHaveURL("/subscribe/confirm")
 
-  const unsubscribeLink = await mailedLink(request, email, "You are subscribed")
+  const unsubscribeLink = await mailedLink(request, email, "Bạn đã đăng ký nhận tin Vi shop")
   expect(unsubscribeLink).toMatch(/^\/api\/subscribers\/unsubscribe\?/)
   await gotoApp(page, unsubscribeLink, page.locator("[data-e2e=unsubscribe-submit]"))
   await expect(page).toHaveURL(/\/unsubscribe\?list=news&token=/)

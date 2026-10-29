@@ -41,7 +41,7 @@ async function subscribeAndConfirm(page: Page, request: APIRequestContext, email
   await page.locator("[data-e2e=subscribe-email]").fill(email)
   await page.locator("[data-e2e=subscribe-submit]").click()
   await expect(page.locator("[data-e2e=subscribe-sent]")).toBeVisible()
-  const confirmLink = await mailedLink(request, email, "Confirm your subscription")
+  const confirmLink = await mailedLink(request, email, "Xác nhận nhận tin từ Vi shop")
   await gotoApp(page, confirmLink, page.locator("[data-e2e=subscription-confirm-submit]"))
   await page.locator("[data-e2e=subscription-confirm-submit]").click()
   await expect(page.locator("[data-e2e=subscription-confirm-done]")).toBeVisible()

@@ -32,7 +32,9 @@ const samePath: LocalizePath = (path) => path
 /**
  * A card with a heading and a sentence, and optionally one link onward. The sentence takes focus
  * through `statusRef` when the card replaces a form on the same page, so a screen reader reads the
- * outcome. `class` is only for the subscribe page, which the website places in a wide column.
+ * outcome. A page that opens on the card (a mailed link's result, rendered by the server) gets the
+ * same through `autofocus`. `class` is only for the subscribe page, which the website places in a
+ * wide column.
  */
 function Outcome(
   { title, text, link, navigate, statusRef, e2e, class: className }: {
@@ -51,6 +53,7 @@ function Outcome(
         class="text-sm text-muted outline-none"
         role="status"
         tabIndex={-1}
+        autofocus
         ref={statusRef}
         data-e2e={`${e2e}-status`}
       >
