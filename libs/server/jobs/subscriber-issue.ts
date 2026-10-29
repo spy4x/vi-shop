@@ -11,7 +11,8 @@ import {
   UNSUBSCRIBE_PLACEHOLDER,
 } from "@spy4x/email/letter"
 import { DEFAULT_LANGUAGE, type Language } from "@domain/identity"
-import { type MailBrand, translatorFor } from "../mail/mail.ts"
+import type { MailBrand } from "../mail/mail.ts"
+import { subscriberMailText } from "../mail/shop-subscriber-words.ts"
 import { enqueueJob } from "./jobs.ts"
 import { SUBSCRIBER_SEND_ISSUE_JOB } from "./subscriber-mail.ts"
 import { uuidV7 } from "@spy4x/platform/universal/uuid"
@@ -57,7 +58,7 @@ export function renderSubscriberIssue(
   language: Language | null = null,
 ): RenderedIssue {
   const host = new URL(brand.webAppUrl).host
-  const t = translatorFor(language ?? DEFAULT_LANGUAGE)
+  const t = subscriberMailText(language ?? DEFAULT_LANGUAGE)
   const blocks = issue.blocks.map((block): LetterBlock => {
     if (`heading` in block) return heading(block.heading)
     if (`paragraph` in block) return paragraph(block.paragraph)

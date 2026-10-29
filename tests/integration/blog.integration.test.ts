@@ -445,7 +445,7 @@ Deno.test(`blog: a scheduled post goes live through its job, and is emailed once
       `
         expect(issue.subject).toBe(`Post launch`)
         expect(issue.html).toContain(`https://www.example.com/blog/launch`)
-        expect(issue.html).toContain(`Read the post`)
+        expect(issue.html).toContain(`Đọc tiếp`)
       },
     )
 
@@ -513,7 +513,7 @@ Deno.test(`blog: a post's issue goes only to the subscribers of its language, wr
     expect(byIssue(`Hallo`)[0].text).not.toContain(`Read the post`)
     expect(byIssue(`Hallo`)[0].text).toContain(`https://www.example.com/de/blog/hallo`)
     expect(byIssue(`Hello`).map((mail) => mail.to)).toEqual([`ada@example.com`])
-    expect(byIssue(`Hello`)[0].text).toContain(`Read the post`)
+    expect(byIssue(`Hello`)[0].text).toContain(`Đọc tiếp`)
     expect(sent.map((mail) => mail.to)).not.toContain(`cat@example.com`)
   })
 })

@@ -1,7 +1,8 @@
 import type postgres from "postgres"
 import { isSubscriberList } from "@domain/subscribers"
 import { BLOG_PUBLISH_JOB, blogPostPath } from "@domain/blog"
-import { type MailBrand, translatorFor } from "../mail/mail.ts"
+import type { MailBrand } from "../mail/mail.ts"
+import { subscriberMailText } from "../mail/shop-subscriber-words.ts"
 import { subscribersInLanguage } from "../jobs/subscriber-mail.ts"
 import type { SubscribersSetup } from "../subscribers/subscribers.ts"
 import {
@@ -48,7 +49,7 @@ export function blogTeaserIssue(
       {
         button: {
           href: `${siteUrl}${blogPostPath(post)}`,
-          label: translatorFor(post.language).t(`SubscriberIssue.readPost`),
+          label: subscriberMailText(post.language).t(`SubscriberIssue.readPost`),
         },
       },
     ],

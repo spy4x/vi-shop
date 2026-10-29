@@ -110,7 +110,7 @@ Deno.test(`a subscriber's mails are written in the language of the page they sig
     )
 
     await t.step(
-      `an address that asked on an English page gets the English confirm mail`,
+      `an address that asked on a main-language page gets the shop's Vietnamese confirm mail`,
       async () => {
         await enqueueSubscriberMail(
           sql,
@@ -121,7 +121,7 @@ Deno.test(`a subscriber's mails are written in the language of the page they sig
         )
         await processor.drainOnce()
 
-        expect(sender.sent.at(-1)?.subject).toBe(`Confirm your subscription to app.example.com`)
+        expect(sender.sent.at(-1)?.subject).toBe(`Xác nhận nhận tin từ Vi shop`)
         linkIn(sender.sent.at(-1)!, `https://www.example.com/subscribe/confirm?`)
       },
     )
