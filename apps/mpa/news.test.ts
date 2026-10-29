@@ -418,6 +418,15 @@ describe(`the mailed links`, () => {
     expect(body).toContain(`Bạn đã hủy đăng ký`)
     expect(body).toMatch(/<a[^>]*href="\/nhan-tin"[^>]*>Đăng ký lại<\/a>/)
   })
+
+  it(`open on the result with focus on it, as the sign-up's sent page does`, async () => {
+    const { fetch } = shop()
+
+    for (const path of [`/subscribe/confirm?state=done`, `/unsubscribe?state=done`]) {
+      const { body } = await fetch(path)
+      expect(body).toMatch(/<p[^>]*role="status"[^>]*autofocus/)
+    }
+  })
 })
 
 describe(`search engines and assistants`, () => {
