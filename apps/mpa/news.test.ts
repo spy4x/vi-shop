@@ -323,6 +323,7 @@ describe(`signing up without JavaScript`, () => {
     const listed = await fetch(`/nhan-tin`, form({ email: `old@example.com`, list: `news` }))
 
     expect(fresh.status).toBe(200)
+    expect(fresh.headers.get(`cache-control`)).toBe(`no-store`)
     expect(fresh.body).toContain(`Kiểm tra hộp thư`)
     expect(fresh.body).toContain(`Shop vừa gửi link xác nhận đến new@example.com.`)
     // The pages differ only in the address and the render's nonce.
