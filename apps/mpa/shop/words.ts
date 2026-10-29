@@ -374,3 +374,81 @@ export const SHOP_CURRENCY = `VND`
 export function formatPrice(amount: number, lang: Lang): string {
   return formatMoney(amount, SHOP_CURRENCY, WORDS[lang].moneyLocale)
 }
+
+/**
+ * The words of the blog and the newsletter, in Vietnamese only: the owner keeps both Vietnamese for
+ * now (issue #16), so English pages show neither. The UX writer's copy, verbatim. Apart from
+ * {@link WORDS}, so the item page's island never loads them.
+ */
+export const NEWS_WORDS = {
+  blog: `Blog`,
+  blogTitle: `Blog của Vi shop`,
+  blogIntro: `Mẫu mới, chuyện vải và cách chọn size, kể từ shop ở Đà Nẵng.`,
+  blogEmptyTitle: `Chưa có bài viết nào`,
+  blogEmptyText: `Bài đầu tiên đang được viết. Trong lúc chờ,`,
+  blogEmptyLink: `xem mẫu mới`,
+  /** The trail's name of the blog, as the breadcrumb says it. */
+  crumb: `Bài viết`,
+  trail: `Đường dẫn`,
+  topics: `Chủ đề`,
+  allTopics: `Tất cả`,
+  posts: `Bài viết`,
+  readTime: (minutes: number) => `${minutes} phút đọc`,
+  updated: (date: string) => `Cập nhật ${date}`,
+  tldr: `Tóm tắt`,
+  inPost: `Món trong bài`,
+  readNext: `Đọc tiếp`,
+  allPosts: `Tất cả bài viết`,
+  postNotFound: `Không tìm thấy bài viết này.`,
+  signupHeading: `Mẫu mới qua email`,
+  signupValue: `Một email ngắn khi có mẫu mới hoặc khi món đã hết có lại. Nhiều nhất mỗi tuần ` +
+    `một lần, không gửi gì khác.`,
+  signupTitle: `Đăng ký nhận tin`,
+  email: `Email`,
+  hint: `Bạn xác nhận qua email trước. Mỗi email đều có link hủy đăng ký.`,
+  submit: `Đăng ký nhận tin`,
+  sentTitle: `Kiểm tra hộp thư`,
+  sentText: (email: string) =>
+    `Shop vừa gửi link xác nhận đến ${email}. Link dùng được trong 3 ngày. Chưa thấy email sau ` +
+    `vài phút? Xem trong mục Thư rác hoặc Quảng cáo.`,
+  failed: `Chưa gửi được link xác nhận. Thử lại sau một phút nhé.`,
+  invalid: `Email này chưa đúng. Kiểm tra lại, ví dụ: ten@gmail.com`,
+  empty: `Nhập email để nhận tin.`,
+  confirmTitle: `Xác nhận đăng ký`,
+  unsubscribeTitle: `Hủy đăng ký`,
+  browse: `Xem mẫu mới`,
+  /**
+   * The Vietnamese of the keys Seed's confirm and unsubscribe screens read
+   * (`libs/ui/subscribe-screen.tsx`). The shop's own words, not a Seed catalog: the screens get them
+   * through their translator on the shop's pages only.
+   */
+  screens: {
+    "SubscriptionConfirm.title": `Xác nhận đăng ký`,
+    "SubscriptionConfirm.question": `Gửi tin mẫu mới đến {email}?`,
+    "SubscriptionConfirm.questionNoEmail": `Gửi tin mẫu mới đến email của bạn?`,
+    "SubscriptionConfirm.submit": `Xác nhận`,
+    "SubscriptionConfirm.confirming": `Đang xác nhận…`,
+    "SubscriptionConfirm.doneTitle": `Bạn đã đăng ký nhận tin`,
+    "SubscriptionConfirm.doneText": `Cảm ơn bạn. Shop vừa gửi email chào mừng, kèm link hủy ` +
+      `đăng ký.`,
+    "SubscriptionConfirm.expiredTitle": `Link này đã hết hạn`,
+    "SubscriptionConfirm.expiredText": `Link xác nhận chỉ dùng được trong 3 ngày. Hãy đăng ký ` +
+      `lại để nhận link mới.`,
+    "SubscriptionConfirm.invalidTitle": `Link này không dùng được`,
+    "SubscriptionConfirm.invalidText": `Mở lại link trong email, hoặc đăng ký lại để nhận link ` +
+      `mới.`,
+    "SubscriptionConfirm.askAgain": `Gửi link mới`,
+    "SubscribeFailure.confirm": `Chưa xác nhận được. Thử lại sau một phút nhé.`,
+    "SubscribeFailure.unsubscribe": `Chưa hủy được. Thử lại sau một phút nhé.`,
+    "Unsubscribe.title": `Hủy đăng ký`,
+    "Unsubscribe.question": `Ngừng gửi tin mẫu mới đến {email}?`,
+    "Unsubscribe.questionNoEmail": `Ngừng gửi tin mẫu mới đến email của bạn?`,
+    "Unsubscribe.submit": `Hủy đăng ký`,
+    "Unsubscribe.unsubscribing": `Đang hủy…`,
+    "Unsubscribe.doneTitle": `Bạn đã hủy đăng ký`,
+    "Unsubscribe.doneText": `Shop sẽ không gửi email nào nữa đến địa chỉ này.`,
+    "Unsubscribe.again": `Đăng ký lại`,
+    "Unsubscribe.invalidText": `Có thể địa chỉ này đã hủy đăng ký rồi. Mở link trong email ` +
+      `mới nhất.`,
+  },
+} as const

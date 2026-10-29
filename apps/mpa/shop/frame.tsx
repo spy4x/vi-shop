@@ -10,8 +10,9 @@ import { SITE_NAME } from "../brand.ts"
 import { contactFooterLinks } from "../contact-links.ts"
 import type { State } from "../utils.ts"
 import { text } from "./catalog.ts"
-import { categoryPath, type Lang, LANGS, PATHS, twinPath } from "./lang.ts"
-import { WORDS } from "./words.ts"
+import { categoryPath, type Lang, LANGS, NEWS_PATHS, PATHS, twinPath } from "./lang.ts"
+import { SignupForm } from "./signup.tsx"
+import { NEWS_WORDS, WORDS } from "./words.ts"
 
 /** The head of one shop page: its title, description, share image and structured data. */
 export interface ShopHead {
@@ -24,13 +25,21 @@ export interface ShopHead {
 
 /** What every shop page hands {@link ShopFrame}. */
 export interface ShopFrameProps {
-  state: Pick<State, `webAppOrigin` | `contactLinks` | `catalog` | `listCount`>
+  state: Pick<
+    State,
+    `webAppOrigin` | `contactLinks` | `catalog` | `listCount` | `blog` | `newsletter`
+  >
   lang: Lang
   /** The page's path in this language, for its canonical address and its twin's. */
   path: string
   head: ShopHead
   /** Whether the page has a twin in the other language: every shop page does, a legal page not. */
   twin?: boolean
+  /**
+   * Whether the footer offers the newsletter's sign-up, on a Vietnamese page while the newsletter
+   * is on. A page that shows the sign-up itself, such as a post, leaves it out of the footer.
+   */
+  signup?: boolean
   children: ComponentChildren
 }
 
@@ -42,12 +51,13 @@ export function shopTitle(title: string): string {
 /**
  * The frame of every shop page, in the page's language: the head with its canonical address and
  * `hreflang` links to both languages (`x-default` is Vietnamese), a skip link, the header with the
- * categories, the FAQ, the language switch and the order list, the content, and the footer with
- * the contact links. Every link works without JavaScript. The page is a column at least the
+ * categories, the blog (Vietnamese, once a post is live), the FAQ, the language switch and the
+ * order list, the content, and the footer with the contact links and, on a Vietnamese page, the
+ * newsletter's sign-up. Every link works without JavaScript. The page is a column at least the
  * screen's height, so the footer stays at the bottom of a short page.
  */
 export function ShopFrame(
-  { state, lang, path, head, twin = true, children }: ShopFrameProps,
+  { state, lang, path, head, twin = true, signup = true, children }: ShopFrameProps,
 ): JSX.Element {
   const words = WORDS[lang]
   const origin = state.webAppOrigin
@@ -57,6 +67,10 @@ export function ShopFrame(
     label: text(category.name, lang),
     href: categoryPath(lang, category.slug),
   }))
+  // The blog is Vietnamese only, and named only once a post is live (issue #16).
+  const blog = lang === `vi` && state.blog === true
+    ? [{ label: NEWS_WORDS.blog, href: NEWS_PATHS.blog }]
+    : []
   return (
     <>
       <Head>
@@ -96,7 +110,7 @@ export function ShopFrame(
               <BrandMark Icon={IconTag} name={SITE_NAME} />
             </a>
           }
-          links={[...categories, { label: words.faq, href: PATHS.faq[lang] }]}
+          links={[...categories, ...blog, { label: words.faq, href: PATHS.faq[lang] }]}
           actions={
             <div class="flex items-center gap-1">
               <a
@@ -127,6 +141,7 @@ export function ShopFrame(
             {
               title: words.info,
               links: [
+                ...blog,
                 { label: words.faq, href: PATHS.faq[lang] },
                 { label: words.privacy, href: `/privacy` },
                 { label: words.terms, href: `/terms` },
@@ -136,6 +151,9 @@ export function ShopFrame(
               ? [{ title: words.contact, links: contactFooterLinks(state.contactLinks ?? []) }]
               : []),
           ]}
+          aside={signup && lang === `vi` && state.newsletter
+            ? <SignupForm variant="footer" />
+            : undefined}
           bottom={<p>© {SITE_NAME}</p>}
         />
       </div>

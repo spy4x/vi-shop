@@ -105,34 +105,53 @@ export function LookList(
             </a>
           </p>
         )
-        : (
-          <LookGrid label={label}>
-            {items.map((item, index) => (
-              <LookTile
-                key={item.slug}
-                href={itemPath(lang, item.categorySlug, item.slug)}
-                name={text(item.name, lang)}
-                price={formatPrice(item.price, lang)}
-                photo={item.cover
-                  ? { variants: photoVariants(item.cover), alt: text(item.cover.alt, lang) }
-                  : PLACEHOLDER}
-                sizes={item.sizes.map((each) => ({
-                  label: each.label,
-                  soldOut: isSoldOut(item, each, null),
-                }))}
-                chosenSize={size ? sizeByLabel(item, size)?.label : undefined}
-                colors={item.colours.map((each) => ({
-                  name: text(each.name, lang),
-                  color: each.swatch,
-                }))}
-                soldOut={item.stock === `sold-out`}
-                priority={index === 0}
-                labels={words.tile}
-              />
-            ))}
-          </LookGrid>
-        )}
+        : <Looks lang={lang} items={items} size={size} label={label} />}
     </div>
+  )
+}
+
+/**
+ * The looks of `items` in a `LookGrid`, each one link to its item's page with its price, sizes
+ * (`size` marked as chosen) and colours. The first loads at once unless `eager` is off, the
+ * rest lazily.
+ */
+export function Looks(
+  { lang, items, size = ``, label, eager = true }: {
+    lang: Lang
+    items: readonly PublicCatalogItem[]
+    size?: string
+    label: string
+    /** Whether the first photo loads at once: off for a list below the fold. */
+    eager?: boolean
+  },
+): JSX.Element | null {
+  const words = WORDS[lang]
+  return (
+    <LookGrid label={label}>
+      {items.map((item, index) => (
+        <LookTile
+          key={item.slug}
+          href={itemPath(lang, item.categorySlug, item.slug)}
+          name={text(item.name, lang)}
+          price={formatPrice(item.price, lang)}
+          photo={item.cover
+            ? { variants: photoVariants(item.cover), alt: text(item.cover.alt, lang) }
+            : PLACEHOLDER}
+          sizes={item.sizes.map((each) => ({
+            label: each.label,
+            soldOut: isSoldOut(item, each, null),
+          }))}
+          chosenSize={size ? sizeByLabel(item, size)?.label : undefined}
+          colors={item.colours.map((each) => ({
+            name: text(each.name, lang),
+            color: each.swatch,
+          }))}
+          soldOut={item.stock === `sold-out`}
+          priority={eager && index === 0}
+          labels={words.tile}
+        />
+      ))}
+    </LookGrid>
   )
 }
 
