@@ -269,12 +269,18 @@ describe(`a post`, () => {
   })
 
   it(`ends with the sign-up band instead of the footer's, and three posts to read next`, async () => {
-    const { body } = await shop().fetch(jacketPost)
+    const fourth = { ...SAMPLE_POSTS[2], slug: `bai-thu-tu`, title: `Bài thứ tư` }
+    const fifth = { ...SAMPLE_POSTS[2], slug: `bai-thu-nam`, title: `Bài thứ năm` }
+    const { body } = await shop({ posts: [...SAMPLE_POSTS, fourth, fifth] }).fetch(jacketPost)
 
     expect(body.match(/data-e2e="signup"/g)?.length).toBe(1)
     expect(body).not.toMatch(/<footer.*data-e2e="signup"/s)
     const readNext = body.match(/data-e2e="read-next".*?<\/section>/s)?.[0] ?? ``
-    expect(stories(readNext)).toEqual([`/bai-viet/vai-du-hai-lop`, `/bai-viet/giat-do-tap`])
+    expect(stories(readNext)).toEqual([
+      `/bai-viet/vai-du-hai-lop`,
+      `/bai-viet/giat-do-tap`,
+      `/bai-viet/bai-thu-tu`,
+    ])
   })
 
   it(`answers 404 in the shop's frame for a post that is not live`, async () => {
@@ -283,6 +289,14 @@ describe(`a post`, () => {
     expect(status).toBe(404)
     expect(body).toContain(`Không tìm thấy bài viết này.`)
     expect(body).toContain(`data-e2e="shop-frame"`)
+  })
+
+  it(`answers 404 for a post written in another language`, async () => {
+    const spanish = { ...SAMPLE_POSTS[1], language: `es` as const }
+    const { status } = await shop({ posts: [SAMPLE_POSTS[0], spanish] })
+      .fetch(`/bai-viet/vai-du-hai-lop`)
+
+    expect(status).toBe(404)
   })
 
   it(`is reached from Seed's address of a post, which an issue's button links to`, async () => {
