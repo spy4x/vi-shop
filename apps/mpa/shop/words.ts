@@ -419,8 +419,8 @@ export const NEWS_WORDS = {
   browse: `Xem mẫu mới`,
   /**
    * The Vietnamese of the keys Seed's confirm and unsubscribe screens read
-   * (`libs/ui/subscribe-screen.tsx`). The shop's own words, not a Seed catalog: the screens get them
-   * through their translator on the shop's pages only.
+   * (`libs/ui/subscribe-screen.tsx`). The shop's own words, not a Seed catalog: the screens get
+   * them through their translator on the shop's pages only.
    */
   screens: {
     "SubscriptionConfirm.title": `Xác nhận đăng ký`,

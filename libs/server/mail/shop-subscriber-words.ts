@@ -29,8 +29,8 @@ export const SUBSCRIBER_MAIL_VI = {
     `Nếu bạn không đăng ký, cứ bỏ qua email này. Shop sẽ không gửi gì thêm.`,
   "SubscriberWelcomeMail.subject": `Bạn đã đăng ký nhận tin Vi shop`,
   "SubscriberWelcomeMail.subscribed": `Cảm ơn bạn. Email tiếp theo đến khi có mẫu mới và bài ` +
-    `viết mới, hoặc khi món đã hết có lại, nhiều nhất mỗi tuần một lần. Muốn hỏi size hay đặt hàng, cứ nhắn shop ` +
-    `qua Telegram hoặc Zalo.`,
+    `viết mới, hoặc khi món đã hết có lại, nhiều nhất mỗi tuần một lần. Muốn hỏi size hay ` +
+    `đặt hàng, cứ nhắn shop qua Telegram hoặc Zalo.`,
   "SubscriberWelcomeMail.reason": `Bạn nhận email này vì đã đăng ký ở {host}.`,
   "SubscriberWelcomeMail.unsubscribe": `Hủy đăng ký`,
   "SubscriberIssue.reason": `Bạn nhận email này vì đã đăng ký ở {host}.`,
