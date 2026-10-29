@@ -260,6 +260,14 @@ describe(`a post`, () => {
     expect(body).toMatch(/data-e2e="post-items".*590\.000/s)
   })
 
+  it(`shows no tile for a link to another site, whatever its path`, async () => {
+    const [first] = SAMPLE_POSTS
+    const html = `${first.html}<p><a href="https://other.example.net/ao/ao-thun-tap">áo</a></p>`
+    const { body } = await shop({ posts: [{ ...first, html }] }).fetch(jacketPost)
+
+    expect(postItems(body)).toEqual([`ao-khoac-zip-nau`, `quan-short-chay-bo`])
+  })
+
   it(`drops a linked item the catalog no longer has`, async () => {
     const [first] = SAMPLE_POSTS
     const gone = { ...first, html: `${first.html}<p><a href="/ao/khong-con-ban">cũ</a></p>` }
