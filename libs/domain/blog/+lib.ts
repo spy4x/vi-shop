@@ -1,6 +1,15 @@
 import { type } from "arktype"
 import { hasUnstorableTextCharacters } from "@spy4x/platform/universal/text"
 import { UUID_PATTERN } from "@spy4x/platform/universal/uuid"
+import { type FieldError, type FieldErrors, FORM_FIELD } from "@spy4x/validation"
+// The preferences module itself: `@domain/identity` imports this library (its audit kinds).
+import {
+  DEFAULT_LANGUAGE,
+  isLanguage,
+  type Language,
+  LANGUAGES,
+  sitePath,
+} from "../identity/preferences.ts"
 
 /**
  * The blog (#395): posts an operator writes in the admin app and the public website shows once
@@ -45,6 +54,14 @@ export const BLOG_READ_NEXT_COUNT = 3
 /** How many posts the RSS feed carries, newest first. */
 export const BLOG_FEED_COUNT = 20
 
+/**
+ * A post's address on the public website, in the language it is written in: `/blog/<slug>` in the
+ * product's main language, `/de/blog/<slug>` in German.
+ */
+export function blogPostPath(post: { language: Language; slug: string }): string {
+  return sitePath(post.language, `/blog/${post.slug}`)
+}
+
 /** A slug: lowercase letters and digits in words joined by single hyphens. */
 export const BLOG_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
@@ -73,6 +90,13 @@ export interface BlogPost {
   /** Set whenever `coverUrl` is. */
   coverAlt: string | null
   bodyMd: string
+  /** The language the post is written in; the website lists it on that language's index. */
+  language: Language
+  /**
+   * The post this one translates, or `null` for a post of its own. The website links a post and
+   * its live translations to each other as language versions (`hreflang`).
+   */
+  translationOf: string | null
   status: BlogPostStatus
   /** When the post goes or went live: set while scheduled or published, `null` for a draft. */
   publishAt: string | null
@@ -99,7 +123,16 @@ export interface BlogPost {
 /** One row of the admin list. */
 export type AdminBlogPostRow = Pick<
   BlogPost,
-  `id` | `slug` | `title` | `status` | `topic` | `publishAt` | `publishedAt` | `updatedAt`
+  | `id`
+  | `slug`
+  | `title`
+  | `status`
+  | `topic`
+  | `language`
+  | `translationOf`
+  | `publishAt`
+  | `publishedAt`
+  | `updatedAt`
 >
 
 /** How many posts each status chip of the admin list counts. */
@@ -139,10 +172,13 @@ export interface RenderedBlogBody {
   readingMinutes: number
 }
 
-/** A mailing list the publish dialog offers, with how many confirmed subscribers it has. */
+/**
+ * A mailing list the publish dialog offers, with how many confirmed subscribers it has in each
+ * language: a post's issue goes only to its language's (#527). A language with none is left out.
+ */
 export interface BlogNewsletterList {
   list: string
-  confirmed: number
+  byLanguage: Partial<Record<Language, number>>
 }
 
 /** The answer of `GET /api/admin/blog/newsletter`. */
@@ -160,6 +196,8 @@ export interface BlogNewsletterResponse {
 /** One post in a public list: what the blog index, sitemap and "Read next" show. */
 export interface PublicBlogPostSummary {
   slug: string
+  /** The language the post is written in; its address on the website is in that language. */
+  language: Language
   title: string
   description: string
   topic: string | null
@@ -178,6 +216,17 @@ export interface PublicBlogPost extends PublicBlogPostSummary {
   html: string
   headings: BlogHeading[]
   authorName: string | null
+  /**
+   * The post's other language versions that are live, without the post itself: the post it
+   * translates and that post's other translations. Empty when it has none.
+   */
+  translations: BlogTranslation[]
+}
+
+/** A live language version of a post, as its page links it. */
+export interface BlogTranslation {
+  language: Language
+  slug: string
 }
 
 /** One item of the RSS feed: the summary, the cover and the full HTML. */
@@ -200,6 +249,7 @@ export type BlogErrorCode =
   | `NOT_SCHEDULED`
   | `NOT_PUBLISHED`
   | `NEWSLETTER_OFF`
+  | `TRANSLATION_INVALID`
   | `VERSION_CONFLICT`
 
 /** A refused blog request, with the field it is about when there is one. */
@@ -208,10 +258,16 @@ export class BlogError extends Error {
     public readonly code: BlogErrorCode,
     message: string,
     public readonly field: BlogField | null = null,
+    /** Why it failed, by code, so a screen says it in the person's language (#275). */
+    failed?: FieldError,
   ) {
     super(message)
     this.name = `BlogError`
+    if (failed) this.fields = { [field ?? FORM_FIELD]: failed }
   }
+
+  /** {@link field} (or the whole form) and why it failed, as the API's `fields` names them. */
+  readonly fields?: FieldErrors
 }
 
 /**
@@ -241,6 +297,9 @@ const postFields = {
   "coverUrl?": `string | null`,
   "coverAlt?": `string | null`,
   bodyMd: `string`,
+  /** One of the languages the apps ship; left out, the product's main language. */
+  "language?": type.enumerated(...LANGUAGES),
+  "translationOf?": type(UUID_PATTERN).or(`null`),
 } as const
 
 const versionField = { version: `number.integer >= 1` } as const
@@ -298,6 +357,8 @@ export type BlogField =
   | `coverUrl`
   | `coverAlt`
   | `bodyMd`
+  | `language`
+  | `translationOf`
 
 /** A post's fields, trimmed and checked, as the repository stores them. */
 export interface BlogPostFields {
@@ -310,6 +371,8 @@ export interface BlogPostFields {
   coverUrl: string | null
   coverAlt: string | null
   bodyMd: string
+  language: Language
+  translationOf: string | null
 }
 
 /** How many characters `text` has, an emoji counting as one, as Postgres counts. */
@@ -357,9 +420,10 @@ export function isHttpsUrl(url: string): boolean {
 export function parseBlogPostFields(
   input: Pick<BlogPostCreateRequest, Exclude<keyof BlogPostCreateRequest, `id`>>,
 ): BlogPostFields {
-  const fail = (field: BlogField, message: string): never => {
-    throw new BlogError(`INVALID_REQUEST`, message, field)
+  const fail = (field: BlogField, message: string, failed: FieldError): never => {
+    throw new BlogError(`INVALID_REQUEST`, message, field, failed)
   }
+  const tooLong = (rule: number): FieldError => ({ code: `maxLength`, values: { rule } })
   const fields: BlogPostFields = {
     title: input.title.trim(),
     slug: input.slug.trim(),
@@ -370,6 +434,8 @@ export function parseBlogPostFields(
     coverUrl: optional(input.coverUrl),
     coverAlt: optional(input.coverAlt),
     bodyMd: input.bodyMd,
+    language: isLanguage(input.language) ? input.language : DEFAULT_LANGUAGE,
+    translationOf: input.translationOf ?? null,
   }
   const texts: [BlogField, string | null][] = [
     [`title`, fields.title],
@@ -384,41 +450,88 @@ export function parseBlogPostFields(
   ]
   for (const [field, text] of texts) {
     if (text !== null && hasUnstorableTextCharacters(text)) {
-      fail(field, `Remove the NUL or broken character from this field.`)
+      fail(field, `Remove the NUL or broken character from this field.`, {
+        code: `unstorableCharacters`,
+      })
     }
   }
-  if (fields.title === ``) fail(`title`, `Enter a title.`)
+  if (fields.title === ``) fail(`title`, `Enter a title.`, { code: `required` })
   if (characters(fields.title) > BLOG_TITLE_MAX_LENGTH) {
-    fail(`title`, `Keep the title to ${BLOG_TITLE_MAX_LENGTH} characters.`)
+    fail(
+      `title`,
+      `Keep the title to ${BLOG_TITLE_MAX_LENGTH} characters.`,
+      tooLong(BLOG_TITLE_MAX_LENGTH),
+    )
   }
   const slugProblem = blogSlugProblem(fields.slug)
-  if (slugProblem) fail(`slug`, slugProblem)
-  if (fields.description === ``) fail(`description`, `Enter a description.`)
+  if (slugProblem) {
+    fail(
+      `slug`,
+      slugProblem,
+      fields.slug === ``
+        ? { code: `required` }
+        : characters(fields.slug) > BLOG_SLUG_MAX_LENGTH
+        ? tooLong(BLOG_SLUG_MAX_LENGTH)
+        : { code: `slug` },
+    )
+  }
+  if (fields.description === ``) fail(`description`, `Enter a description.`, { code: `required` })
   if (characters(fields.description) > BLOG_DESCRIPTION_MAX_LENGTH) {
-    fail(`description`, `Keep the description to ${BLOG_DESCRIPTION_MAX_LENGTH} characters.`)
+    fail(
+      `description`,
+      `Keep the description to ${BLOG_DESCRIPTION_MAX_LENGTH} characters.`,
+      tooLong(BLOG_DESCRIPTION_MAX_LENGTH),
+    )
   }
   if (fields.seoTitle !== null && characters(fields.seoTitle) > BLOG_SEO_TITLE_MAX_LENGTH) {
-    fail(`seoTitle`, `Keep the SEO title to ${BLOG_SEO_TITLE_MAX_LENGTH} characters.`)
+    fail(
+      `seoTitle`,
+      `Keep the SEO title to ${BLOG_SEO_TITLE_MAX_LENGTH} characters.`,
+      tooLong(BLOG_SEO_TITLE_MAX_LENGTH),
+    )
   }
-  if (fields.tldr.length > BLOG_TLDR_MAX) fail(`tldr`, `Keep it to ${BLOG_TLDR_MAX} key points.`)
+  if (fields.tldr.length > BLOG_TLDR_MAX) {
+    fail(`tldr`, `Keep it to ${BLOG_TLDR_MAX} key points.`, {
+      code: `maxItems`,
+      values: { rule: BLOG_TLDR_MAX },
+    })
+  }
   if (fields.tldr.some((point) => characters(point) > BLOG_TLDR_ITEM_MAX_LENGTH)) {
-    fail(`tldr`, `Keep each key point to ${BLOG_TLDR_ITEM_MAX_LENGTH} characters.`)
+    fail(
+      `tldr`,
+      `Keep each key point to ${BLOG_TLDR_ITEM_MAX_LENGTH} characters.`,
+      tooLong(BLOG_TLDR_ITEM_MAX_LENGTH),
+    )
   }
   if (fields.topic !== null && characters(fields.topic) > BLOG_TOPIC_MAX_LENGTH) {
-    fail(`topic`, `Keep the topic to ${BLOG_TOPIC_MAX_LENGTH} characters.`)
+    fail(
+      `topic`,
+      `Keep the topic to ${BLOG_TOPIC_MAX_LENGTH} characters.`,
+      tooLong(BLOG_TOPIC_MAX_LENGTH),
+    )
   }
   if (fields.coverUrl !== null) {
     if (characters(fields.coverUrl) > BLOG_COVER_URL_MAX_LENGTH || !isHttpsUrl(fields.coverUrl)) {
-      fail(`coverUrl`, `Enter a full https:// link to the image.`)
+      fail(`coverUrl`, `Enter a full https:// link to the image.`, { code: `httpsUrl` })
     }
-    if (fields.coverAlt === null) fail(`coverAlt`, `Describe what the image shows.`)
+    if (fields.coverAlt === null) {
+      fail(`coverAlt`, `Describe what the image shows.`, { code: `required` })
+    }
   }
   if (fields.coverAlt !== null && characters(fields.coverAlt) > BLOG_COVER_ALT_MAX_LENGTH) {
-    fail(`coverAlt`, `Keep the cover description to ${BLOG_COVER_ALT_MAX_LENGTH} characters.`)
+    fail(
+      `coverAlt`,
+      `Keep the cover description to ${BLOG_COVER_ALT_MAX_LENGTH} characters.`,
+      tooLong(BLOG_COVER_ALT_MAX_LENGTH),
+    )
   }
   if (fields.coverUrl === null) fields.coverAlt = null
   if (characters(fields.bodyMd) > BLOG_BODY_MAX_LENGTH) {
-    fail(`bodyMd`, `Keep the post to ${BLOG_BODY_MAX_LENGTH} characters.`)
+    fail(
+      `bodyMd`,
+      `Keep the post to ${BLOG_BODY_MAX_LENGTH} characters.`,
+      tooLong(BLOG_BODY_MAX_LENGTH),
+    )
   }
   return fields
 }
@@ -431,10 +544,13 @@ export function parsePublishTime(at: string | undefined, now: Date): Date | null
   if (at === undefined) return null
   const when = new Date(at)
   if (Number.isNaN(when.getTime()) || when.getTime() <= now.getTime()) {
-    throw new BlogError(`INVALID_REQUEST`, `Pick a time in the future.`)
+    throw new BlogError(`INVALID_REQUEST`, `Pick a time in the future.`, null, { code: `future` })
   }
   if (when.getTime() > now.getTime() + BLOG_SCHEDULE_MAX_DAYS * 86_400_000) {
-    throw new BlogError(`INVALID_REQUEST`, `Pick a time within the next five years.`)
+    throw new BlogError(`INVALID_REQUEST`, `Pick a time within the next five years.`, null, {
+      code: `withinYears`,
+      values: { rule: 5 },
+    })
   }
   return when
 }

@@ -132,8 +132,16 @@ export const authPasswordSchema = type({
 })
 export type AuthPassword = typeof authPasswordSchema.infer
 
+/**
+ * The language of the page that asks for a mail (#277): a sign-up code or a sign-in link, sent
+ * before the server knows whose account the address is. Any short tag is accepted, so an app
+ * that offers a language the server does not yet know still signs up; the server keeps only one
+ * of {@link LANGUAGES}, and English otherwise.
+ */
+const mailLanguageSchema = type({ "language?": "string <= 35" })
+
 /** The body of sign-up. */
-export const authSignUpSchema = authEmailSchema.and(authPasswordSchema)
+export const authSignUpSchema = authEmailSchema.and(authPasswordSchema).and(mailLanguageSchema)
 export type AuthSignUp = typeof authSignUpSchema.infer
 
 /** The body of sign-in. */
@@ -250,12 +258,6 @@ export type SignInMethodProof = typeof signInMethodProofSchema.infer
 
 /** Days a deleted account waits before it is removed for good. Signing in before then restores it. */
 export const ACCOUNT_DELETION_GRACE_DAYS = 7
-
-/**
- * The author shown for what a deleted account left in a shared group. Its rows keep the content and
- * hold `null` where the author's id was.
- */
-export const DELETED_USER_NAME = "Deleted user"
 
 /**
  * The body of "turn two-factor off": the account's password, or a current authenticator code. A
@@ -656,12 +658,19 @@ export const SIGN_IN_LINK_MINUTES = 15
 export const SIGN_IN_LINK_METHOD = "email-link"
 
 /**
+ * The `identifier` of the person's own {@link AuthAuditEventType.PROFILE_UPDATED} rows for their
+ * profile picture (#228): a new picture, and a removal (#453). Rows written before #453 say
+ * `picture` for a removal too.
+ */
+export const PICTURE_AUDIT = { changed: "picture", removed: "picture-removed" } as const
+
+/**
  * The body of `POST /api/auth/link`: the address the link goes to, and the page to open after
  * sign-in, which the API checks again.
  */
 export const authSignInLinkSchema = authEmailSchema.and({
   "next?": "string <= 2048",
-})
+}).and(mailLanguageSchema)
 export type AuthSignInLink = typeof authSignInLinkSchema.infer
 
 /** The body of `POST /api/auth/link/redeem`: the token from the link, as the page read it. */

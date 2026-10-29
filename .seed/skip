@@ -51,3 +51,8 @@ apps/mpa/static/favicon.svg
 apps/mpa/lighthouse/lighthouserc.json
 apps/mpa/lighthouse/run.sh
 apps/mpa/lighthouse/blog-api.ts
+apps/mpa/routes/[[lang]]
+apps/mpa/routes/[lang]
+e2e/mpa/lang.mpa.ts
+apps/mpa/languages.test.ts
+i18n/site

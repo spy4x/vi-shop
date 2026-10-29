@@ -11,14 +11,9 @@ import { afterAll, afterEach, beforeAll, describe, it } from "@std/testing/bdd"
 import { Window } from "happy-dom"
 import { render, type VNode } from "preact"
 import { act } from "preact/test-utils"
-import { type Catalog, createTranslator, pseudoLocalize } from "@spy4x/platform/universal/i18n"
 import { I18nContext } from "@spy4x/preact-ui/i18n"
 import { FormatContext } from "@spy4x/preact-ui/format"
 import { createFormatters } from "@spy4x/time/format"
-import uiEn from "@spy4x/preact-ui/i18n/en"
-import systemEn from "@spy4x/preact-system/i18n/en"
-import chartsEn from "@spy4x/preact-charts/i18n/en"
-import appEn from "@i18n/app/en.json" with { type: "json" }
 import { GroupRole, overviewPeriods } from "@domain/groups"
 import { NOTE_WIDGET_IDS } from "@domain/notes"
 import { NOTE_WIDGET_VIEWS } from "./note-widgets.tsx"
@@ -30,6 +25,7 @@ import { TagEditorScreen } from "./tag-editor-screen.tsx"
 import { NewNoteDialog } from "./new-note-dialog.tsx"
 import { generalRows, SHORTCUT_GROUPS, ShortcutsList } from "./shortcuts.tsx"
 import { SearchPalette } from "./search-palette.tsx"
+import { englishLeft, PSEUDO } from "./i18n-testing.ts"
 
 const window = new Window({ url: "http://app.localhost/" })
 const own = {
@@ -63,14 +59,6 @@ afterEach(async () => {
   root = null
 })
 
-/** Every catalog the SPA loads, pseudo-localized. */
-const PSEUDO = createTranslator({
-  language: `en-XA`,
-  catalogs: ([uiEn, systemEn, chartsEn, appEn] as Catalog[]).map((source) => ({
-    source,
-    translation: pseudoLocalize(source),
-  })),
-})
 const FORMAT = createFormatters({ locale: `en-GB`, timeZone: `Europe/Berlin`, hourCycle: `h23` })
 
 async function mount(node: VNode): Promise<void> {
@@ -90,29 +78,8 @@ async function settle(): Promise<void> {
   await act(() => new Promise((resolve) => setTimeout(resolve, 260)))
 }
 
-/** The page's words a person reads or hears: its text and its labels, dates left out. */
-function readable(): string[] {
-  const texts: string[] = []
-  const walker = document.createTreeWalker(document.body, 4 /* NodeFilter.SHOW_TEXT */)
-  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-    if (node.parentElement?.closest(`script, style, time`)) continue
-    texts.push(node.textContent ?? ``)
-  }
-  for (const element of document.body.querySelectorAll(`*`)) {
-    if (element.closest(`time`)) continue
-    for (const name of [`aria-label`, `placeholder`, `title`]) {
-      const value = element.getAttribute(name)
-      if (value) texts.push(value)
-    }
-  }
-  return texts.map((text) => text.trim()).filter(Boolean)
-}
-
 /** The data these screens show as it is: titles, names, files, sizes and key names. */
 const DATA = [
-  // Another lane's English, until it moves to the catalog (#275): the account screens'
-  // `PICTURE_RULE`, which the palette's "Change picture" action shows.
-  `JPEG, PNG, WebP or HEIC, up to 10 MB`,
   // The exact time a screen reader hears after "Updated by …, 26 days ago".
   FORMAT.exact(`2026-10-01T10:00:00.000Z`),
   `Groceries`,
@@ -137,17 +104,9 @@ const DATA = [
   ...[`19`, `20`, `21`].map((d) => FORMAT.utc().dayMonth(`2026-10-${d}T00:00:00Z`)),
 ]
 
-/**
- * The English left on the page once the pseudo-text and the data are taken out. A message split
- * around a value or a tag spans several nodes, and only the first and last carry `⟦` and `⟧`, so a
- * word counts as English only when it has a vowel `en-XA` did not accent.
- */
+/** The English left on the page once the pseudo-text and the data are taken out. */
 function english(): string[] {
-  return readable().filter((text) => {
-    let rest = text.replaceAll(/⟦[^⟧]*(⟧|$)/g, ``).replace(/^[^⟦]*⟧/, ``)
-    for (const data of DATA) rest = rest.replaceAll(data, ``)
-    return (rest.match(/[A-Za-z]{2,}/g) ?? []).some((word) => /[aeiouAEIOU]/.test(word))
-  })
+  return englishLeft(document.body, DATA)
 }
 
 /** The page holds the pseudo-text of every message: the render reached each part checked. */
@@ -349,7 +308,18 @@ describe(`the notes, tags, search and shortcuts screens in en-XA`, () => {
     })
     await settle()
     expect(english()).toEqual([])
-    expectReached([`Search.notesOnDevice`, `Search.actions`])
+    expectReached([`Search.notesOnDevice`, `Search.actions`, [`ProfilePicture.rule`, {
+      max: `10 MB`,
+    }]])
+    // A query lists the groups too, each with the person's role in it.
+    const field = document.querySelector<HTMLInputElement>(`[data-e2e=search] input`)!
+    field.value = team.name
+    await act(() => {
+      field.dispatchEvent(new window.Event(`input`, { bubbles: true }) as unknown as Event)
+    })
+    await settle()
+    expect(english()).toEqual([])
+    expectReached([`Search.groups`, `Groups.roleOwner`])
   })
   it(`draw the overview's note widgets with no English outside the catalogs`, async () => {
     const periods = overviewPeriods({ from: `2026-10-19`, to: `2026-10-21` })!

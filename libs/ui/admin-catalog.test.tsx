@@ -41,7 +41,7 @@ import {
   type AdminCatalogSourcesScreenProps,
   TRACKING_OFF_NOTICE,
 } from "./admin-catalog-sources.tsx"
-import { ADMIN_ENGLISH, ADMIN_PSEUDO, englishLeft } from "./admin-pseudo.ts"
+import { ADMIN_ENGLISH, ADMIN_PSEUDO, englishLeft } from "./i18n-testing.ts"
 import { I18nContext } from "@spy4x/preact-ui/i18n"
 
 const window = new Window({ url: "http://admin.localhost/catalog" })
@@ -659,6 +659,66 @@ describe("the item editor", () => {
     expect(row?.querySelector("img")?.getAttribute("src")).toContain(PHOTOS[1])
   })
 
+  it("marks the cover with a badge and a ring, and names its thumbnail as the cover", async () => {
+    await mount(<ItemEditor calls={[]} item={ITEM_SAVED} />)
+    const rows = [...document.querySelectorAll("[data-e2e=catalog-item-photo]")]
+    const open = rows.map((row) => row.querySelector("[data-e2e=catalog-item-photo-open]")!)
+
+    expect(open.map((one) => one.getAttribute("aria-label"))).toEqual([
+      "Open full size: Photo 1, the cover",
+      "Open full size: Photo 2",
+    ])
+    expect(rows.map((row) => row.querySelector("[data-e2e=catalog-item-photo-cover-badge]")))
+      .toEqual([expect.anything(), null])
+    expect(rows[0].querySelector("[data-e2e=catalog-item-photo-cover-badge]")!.textContent)
+      .toBe("Cover")
+    expect(open.map((one) => one.className.includes("--color-selected"))).toEqual([true, false])
+  })
+
+  it("opens a photo full size, moves with the arrow keys, and closes back to the photo", async () => {
+    await mount(<ItemEditor calls={[]} item={ITEM_SAVED} />)
+    const second = document.querySelectorAll<HTMLElement>("[data-e2e=catalog-item-photo-open]")[1]
+    second.focus()
+    await clickOn(second)
+    const dialog = find<HTMLDialogElement>("dialog[open]")
+    const shown = () => dialog.querySelector("img")?.getAttribute("src")
+    expect(shown()).toBe(`/api/admin/catalog/photos/${PHOTOS[1]}/full`)
+    // A browser moves focus into the dialog; happy-dom does not, so the test does.
+    dialog.querySelector("button")!.focus()
+
+    await act(() => {
+      dialog.dispatchEvent(
+        new window.KeyboardEvent("keydown", {
+          key: "ArrowRight",
+          bubbles: true,
+        }) as unknown as Event,
+      )
+    })
+    expect(shown()).toBe(`/api/admin/catalog/photos/${PHOTOS[0]}/full`)
+    expect(dialog.getAttribute("aria-label")).toBe("Photo 1, the cover")
+
+    await act(() => dialog.close())
+    await settle()
+    expect(document.querySelector("dialog[open]")).toBeNull()
+    expect(document.activeElement).toBe(second)
+
+    // Closed for good: the next photo opens it again.
+    await clickOn(document.querySelectorAll("[data-e2e=catalog-item-photo-open]")[0])
+    expect(find("dialog[open] img").getAttribute("src"))
+      .toBe(`/api/admin/catalog/photos/${PHOTOS[0]}/full`)
+  })
+
+  it("opens no lightbox for a photo still being prepared", async () => {
+    const preparing = { ...ITEM_SAVED.photos[1], state: "preparing" as const }
+    await mount(
+      <ItemEditor calls={[]} item={{ ...ITEM_SAVED, photos: [ITEM_SAVED.photos[0], preparing] }} />,
+    )
+    const rows = [...document.querySelectorAll("[data-e2e=catalog-item-photo]")]
+    expect(rows.map((row) => row.querySelector("[data-e2e=catalog-item-photo-open]") !== null))
+      .toEqual([true, false])
+    expect(rows[1].textContent).toContain("Preparing")
+  })
+
   it("gives the stock boxes and the small buttons a 44px tap area on a phone", async () => {
     await mount(<ItemEditor calls={[]} item={ITEM_SAVED} />)
     const box = find("[data-e2e=catalog-item-in-stock]").closest("label")!
@@ -701,6 +761,7 @@ describe("the item editor's checks", () => {
       ok: false,
       field: `size:${SMALL}`,
       message: "Enter both ends of the height, or neither.",
+      failed: { [`size:${SMALL}`]: { code: "heightBothEnds" } },
     })
     const whole = catalogItemFields(
       draft({ sizes: [{ ...size, heightMax: "162" }] }),
@@ -794,3 +855,61 @@ describe("the link sources in en-XA", () => {
     expect(englishLeft(document.body, data)).toEqual([])
   })
 })
+
+describe("the item editor in en-XA", () => {
+  const pseudo = (node: VNode) =>
+    <I18nContext.Provider value={ADMIN_PSEUDO}>{node}</I18nContext.Provider>
+  // The item's, the category's, the colour's and the sources' own words, the languages' names in
+  // their own language, and the links and their utm_source tags.
+  const data = [
+    /Áo thun|Đỏ|English|Tiếng Việt|Zalo group A|Friends|VND/g,
+    /https:\/\/\S+/g,
+    /utm_source=[a-z-]+/g,
+  ]
+
+  it("shows no English outside the catalog, from loading to a saved item's menus and dialogs", async () => {
+    const calls: unknown[][] = []
+    const left: string[] = []
+    const props = { item: null, settings: SETTINGS, categories: [], value: catalogItemDraft(null) }
+    const screen = { ...props, onChange: () => {}, errors: {}, saving: false, onSave: () => {} }
+    const actions = { onPublish: () => {}, onHide: () => {}, onDelete: () => {} }
+    const photos = {
+      photos: { uploading: 2, busy: false, error: null },
+      onUpload: () => {},
+      onPhotoMove: () => {},
+      onPhotoSave: () => {},
+      onPhotoRemove: () => {},
+    }
+    for (const state of [{ loading: true, notFound: false }, { loading: false, notFound: true }]) {
+      await mount(
+        pseudo(<AdminCatalogItemScreen {...screen} {...actions} {...photos} {...state} />),
+      )
+      left.push(...englishLeft(document.body, data))
+    }
+    // A new item: no photos yet, then a colour and a size with no names.
+    await mount(pseudo(<ItemEditor key="new" calls={calls} shareLinks={{ ...emptyShare }} />))
+    left.push(...englishLeft(document.body, data))
+    await clickOn(find("[data-e2e=catalog-item-add-colour]"))
+    await clickOn(find("[data-e2e=catalog-item-add-size]"))
+    left.push(...englishLeft(document.body, data))
+    // A saved draft with its share links, the menu of a photo, then the publish dialog.
+    const sources = [sourceOf(), sourceOf({ id: FRIENDS, name: "Friends", slug: "friends" })]
+    const share = { ...emptyShare, sources, links: { [ZALO]: "https://shop.example/s/AbCd" } }
+    await mount(
+      pseudo(<ItemEditor key="saved" calls={calls} item={ITEM_SAVED} shareLinks={share} />),
+    )
+    await clickOn(document.querySelectorAll("[data-e2e=catalog-item-photo-menu]")[1])
+    left.push(...englishLeft(document.body, data))
+    await clickOn(find("[data-e2e=catalog-item-publish]"))
+    expect(document.querySelector("dialog[open]")).not.toBeNull()
+    left.push(...englishLeft(document.body, data))
+    expect(left).toEqual([])
+  })
+})
+
+const emptyShare: CatalogShareLinksState = {
+  sources: [],
+  links: {},
+  copying: null,
+  onCopy: () => {},
+}
