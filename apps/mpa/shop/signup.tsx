@@ -43,7 +43,7 @@ export function SignupForm(
         <Heading
           id="signup-heading"
           class={variant === `page`
-            ? `text-4xl font-extrabold leading-tight tracking-tighter text-balance`
+            ? `text-3xl font-semibold tracking-tight text-balance lg:text-4xl`
             : `text-xl font-semibold tracking-tight text-balance`}
         >
           {NEWS_WORDS.signupHeading}

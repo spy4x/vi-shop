@@ -101,7 +101,7 @@ function renderSignup(ctx: FreshContext<State>, page: SignupPage): Response | Pr
   const body = page.sent
     ? (
       <section class="flex flex-col gap-4" data-e2e="signup-sent">
-        <h1 class="text-4xl font-extrabold leading-tight tracking-tighter text-balance">
+        <h1 class="text-3xl font-semibold tracking-tight text-balance lg:text-4xl">
           {NEWS_WORDS.sentTitle}
         </h1>
         {/* Takes focus, so a screen reader reads the outcome after the post. */}
