@@ -4,7 +4,8 @@ import { expect, test } from "@playwright/test"
 /**
  * The blog and the newsletter on the sample shop (apps/mpa/lighthouse/sample-blog.ts): a post's
  * sign-up reaches "Kiểm tra hộp thư" and a topic chip filters the index, with and without
- * JavaScript, and the new pages pass axe-core in both themes.
+ * JavaScript, the new pages pass axe-core in both themes, and their links and topic labels are the
+ * shop's olive, never the library's purple.
  */
 
 const POST = `/bai-viet/chon-size-ao-khoac`
@@ -58,4 +59,46 @@ for (const colorScheme of [`light`, `dark`] as const) {
       }
     })
   }
+}
+
+/** The red, green and blue the browser paints `color` in, whatever syntax it computes it to. */
+function painted(color: string): [number, number, number] {
+  const canvas = document.createElement(`canvas`)
+  canvas.width = canvas.height = 1
+  const context = canvas.getContext(`2d`)!
+  context.fillStyle = color
+  context.fillRect(0, 0, 1, 1)
+  const [red, green, blue] = context.getImageData(0, 0, 1, 1).data
+  return [red, green, blue]
+}
+
+for (const colorScheme of [`light`, `dark`] as const) {
+  test(`a post's links and the index's topic labels are olive in the ${colorScheme} theme`, async ({ browser }) => {
+    const context = await browser.newContext({ colorScheme })
+    try {
+      const page = await context.newPage()
+      const colours: [number, number, number][] = []
+      await page.goto(POST)
+      const link = page.getByRole(`link`, { name: `áo khoác zip` }).first()
+      colours.push(
+        await link.evaluate((each, paint) => {
+          return new Function(`return ${paint}`)()(getComputedStyle(each).color)
+        }, painted.toString()),
+      )
+      await page.goto(`/bai-viet`)
+      const topic = page.locator(`p.text-primary`, { hasText: `Chọn size` }).first()
+      colours.push(
+        await topic.evaluate((each, paint) => {
+          return new Function(`return ${paint}`)()(getComputedStyle(each).color)
+        }, painted.toString()),
+      )
+
+      // Olive has more green than blue; the library's purple has far more blue than green.
+      for (const [red, green, blue] of colours) {
+        expect(green, `rgb(${red}, ${green}, ${blue})`).toBeGreaterThan(blue)
+      }
+    } finally {
+      await context.close()
+    }
+  })
 }

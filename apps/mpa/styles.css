@@ -21,6 +21,17 @@
   --color-accent: oklch(0.5 0.105 105);
 }
 
+/* The light palette's link and label tone (`text-primary`, prose links, form focus rings) and the
+   text on a primary fill, which the library's light tokens leave purple. Olive here: 5.4:1 on the
+   canvas, 5.9:1 on white. In the same layer as the library's tokens and after them, so the light
+   value wins over theirs while dark keeps ink.css's (unlayered) accent step 400. */
+@layer theme.preact-tokens {
+  :root {
+    --color-primary-muted: var(--color-primary);
+    --color-primary-foreground: oklch(0.985 0 0);
+  }
+}
+
 /* Room under the controls above an order bar stuck to the bottom of a phone, before or without
    scripts; once scripts run, the bar sets it to its own height (preact-ui README, "Storefront"). */
 @media (width < 64rem) {
