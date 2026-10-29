@@ -139,6 +139,12 @@ describe(`the home page`, () => {
     expect(vi.body).toMatch(/href="\/en"[^>]*data-e2e="language-switch"/)
   })
 
+  it(`sends an old /en/ link to /en, keeping the query`, async () => {
+    const response = await get(`/en/?a=1`)
+    expect(response.status).toBe(301)
+    expect(response.headers.get(`location`)).toBe(`/en?a=1`)
+  })
+
   it(`says tomorrow after 16:00 Vietnam time`, async () => {
     const { body } = await get(`/`, {}, { now: new Date(`2026-10-28T09:30:00Z`) })
 
