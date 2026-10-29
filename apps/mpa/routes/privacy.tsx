@@ -9,7 +9,7 @@ export const PRIVACY_HEAD = {
   title: `Quyền riêng tư`,
   description: `${SITE_NAME} lưu gì về bạn: không tài khoản, không cookie, không bán ` +
     `dữ liệu. Đơn hàng được trao đổi qua Telegram hoặc Zalo.`,
-  updated: `2026-10-28`,
+  updated: `2026-10-29`,
 } as const
 
 /**
@@ -23,7 +23,7 @@ export default define.page(function Privacy({ state }) {
       path="/privacy"
       title={PRIVACY_HEAD.title}
       description={PRIVACY_HEAD.description}
-      updated="28/10/2026"
+      updated="29/10/2026"
     >
       <p>
         Trang này nói rõ trang web {new URL(state.webAppOrigin).host} lưu gì về bạn và vì sao.
@@ -51,8 +51,15 @@ export default define.page(function Privacy({ state }) {
         thoại của bạn nằm trong ứng dụng chat đó, theo chính sách riêng tư của Telegram hoặc Zalo.
         Cửa hàng chỉ dùng chúng để xác nhận, giao hàng và trả lời bạn.
       </p>
+      <h2 id="newsletter">Đăng ký nhận tin</h2>
+      <p>
+        Nếu bạn đăng ký nhận tin, chúng tôi lưu email của bạn cho đến khi bạn hủy đăng ký, và chỉ
+        dùng nó để gửi tin mẫu mới.
+      </p>
       <h2 id="not">Những điều chúng tôi không làm</h2>
-      <p>Chúng tôi không bán, không chia sẻ dữ liệu của bạn và không gửi email quảng cáo.</p>
+      <p>
+        Chúng tôi không bán, không chia sẻ dữ liệu của bạn và không gửi email nào bạn không đăng ký.
+      </p>
       <h2 id="questions">Câu hỏi</h2>
       <p>
         Muốn hỏi hoặc yêu cầu xóa tin nhắn? Hãy nhắn trực tiếp cho cửa hàng trong chat, hoặc{" "}
@@ -61,7 +68,8 @@ export default define.page(function Privacy({ state }) {
       <p lang="en">
         In English: this website has no accounts, sets no cookies and shows no ads. Orders happen in
         your own Telegram or Zalo chat with the shop. Server logs with your IP address are kept for
-        a short time to run the site, then deleted automatically.
+        a short time to run the site, then deleted automatically. If you subscribe, we keep your
+        email address until you unsubscribe, and use it only to send new pieces.
       </p>
     </LegalPage>
   )
